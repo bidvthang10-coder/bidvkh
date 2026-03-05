@@ -286,7 +286,26 @@ function hideLoading() {
   if (el) el.remove();
 }
 
-document.addEventListener('DOMContentLoaded', () => { initApp(); });
+document.addEventListener('DOMContentLoaded', () => {
+  initApp();
+  // Event delegation cho bảng Chưa giao đủ
+  document.addEventListener('click', function(e){
+    const btn=e.target.closest('[data-sua]');
+    if(btn){
+      e.stopPropagation();
+      const pgid=btn.dataset.pgid;
+      if(btn.dataset.sua==='kpi') goSuaKPI(pgid);
+      else goSuaBSC(pgid);
+      return;
+    }
+    const row=e.target.closest('tr[data-pgid]');
+    if(row){
+      const pgid=row.dataset.pgid;
+      const inKPI=document.getElementById('chuaDuKPITb').contains(row);
+      if(inKPI) goSuaKPI(pgid); else goSuaBSC(pgid);
+    }
+  });
+});
 </script>
 </head>
 <body>
@@ -410,9 +429,18 @@ document.addEventListener('DOMContentLoaded', () => { initApp(); });
             <div class="srch" style="flex:1"><span class="srch-ic">🔍</span><input id="chuaKPISQ" placeholder="Tìm cán bộ..." oninput="renderChuaPG()"></div>
             <select class="fsel" id="chuaKPIPh" onchange="renderChuaPG()"><option value="">Tất cả phòng</option></select>
           </div>
-          <div class="tw" style="max-height:420px;overflow-y:auto"><table>
+          <div class="tw" style="max-height:220px;overflow-y:auto"><table>
             <thead><tr><th>#</th><th>Cán bộ</th><th>Phòng</th><th>Vị trí</th><th>Thao tác</th></tr></thead>
             <tbody id="chuaKPITb"></tbody>
+          </table></div>
+          <!-- Chưa giao đủ KPI -->
+          <div class="card-h" style="margin-top:8px;border-top:1px solid #f5b7b1;background:#fff8f7;padding:8px 14px">
+            <div class="card-t" style="color:#c0392b">⚠️ Chưa giao đủ số KH (KPI)</div>
+            <span id="chuaDuKPICnt" style="font-size:11px;color:#c0392b"></span>
+          </div>
+          <div class="tw" style="max-height:200px;overflow-y:auto"><table>
+            <thead><tr><th>#</th><th>Cán bộ</th><th>Phòng</th><th>Kỳ</th><th>Thiếu</th><th>Thao tác</th></tr></thead>
+            <tbody id="chuaDuKPITb"></tbody>
           </table></div>
         </div>
         <!-- Phòng ban chưa có phân giao BSC -->
@@ -421,9 +449,18 @@ document.addEventListener('DOMContentLoaded', () => { initApp(); });
             <div class="card-t">📐 Phòng ban chưa có phân giao BSC</div>
             <span id="chuaBSCCnt" style="font-size:11px;color:#8fa3b8"></span>
           </div>
-          <div class="tw" style="max-height:200px;overflow-y:auto;margin-bottom:0"><table>
+          <div class="tw" style="max-height:160px;overflow-y:auto;margin-bottom:0"><table>
             <thead><tr><th>#</th><th>Phòng / PGD</th><th>Mã BCT</th><th>Thao tác</th></tr></thead>
             <tbody id="chuaBSCTb"></tbody>
+          </table></div>
+          <!-- Chưa giao đủ BSC -->
+          <div class="card-h" style="margin-top:8px;border-top:1px solid #f5b7b1;background:#fff8f7;padding:8px 14px">
+            <div class="card-t" style="color:#c0392b">⚠️ Chưa giao đủ số KH (BSC)</div>
+            <span id="chuaDuBSCCnt" style="font-size:11px;color:#c0392b"></span>
+          </div>
+          <div class="tw" style="max-height:160px;overflow-y:auto;margin-bottom:0"><table>
+            <thead><tr><th>#</th><th>Phòng</th><th>Mã BCT</th><th>Kỳ</th><th>Thiếu</th><th>Thao tác</th></tr></thead>
+            <tbody id="chuaDuBSCTb"></tbody>
           </table></div>
           <!-- Thống kê theo kỳ -->
           <div class="card-h" style="margin-top:8px;border-top:1px solid #d5dfe8">
@@ -618,31 +655,57 @@ document.addEventListener('DOMContentLoaded', () => { initApp(); });
     <div class="card">
       <div class="card-h">
         <div class="card-t">📥 Import phân giao từ Excel</div>
-        <button class="btn btn-gold btn-sm" id="btnDlSamplePG" onclick="downloadSamplePG()">⬇ Tải file mẫu (.xlsx)</button>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-gold btn-sm" id="btnDlSamplePG" onclick="downloadSamplePG('KPI')">⬇ Mẫu KPI (.xlsx)</button>
+          <button class="btn btn-gold btn-sm" onclick="downloadSamplePG('BSC')">⬇ Mẫu BSC (.xlsx)</button>
+        </div>
       </div>
       <div class="card-b">
         <div id="impPGAlert"></div>
         <div style="background:#fef8e7;border:1px solid #f0d080;border-radius:10px;padding:13px;margin-bottom:14px">
           <div style="font-weight:700;font-size:12px;color:#8a5e00;margin-bottom:8px">📋 Cấu trúc file — mỗi hàng = 1 chỉ tiêu, các cột đầu lặp lại cho cùng 1 phân giao</div>
-          <div style="overflow-x:auto">
-          <table style="width:100%;font-size:11.5px;border-collapse:collapse;min-width:600px">
-            <tr style="background:#f7e9b0"><td style="padding:3px 7px;font-weight:700">Cột</td><td style="padding:3px 7px;font-weight:700">Mô tả</td><td style="padding:3px 7px;font-weight:700">Giá trị ví dụ</td><td style="padding:3px 7px;font-weight:700">Bắt buộc</td></tr>
-            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">A · BO_CT</td><td style="padding:3px 7px">Loại bộ chỉ tiêu</td><td style="padding:3px 7px;color:#445566">KPI hoặc BSC</td><td style="padding:3px 7px;color:#c0392b">✔</td></tr>
-            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">B · CAN_BO_PHONG</td><td style="padding:3px 7px">Tên cán bộ (KPI) hoặc Phòng (BSC)</td><td style="padding:3px 7px;color:#445566">Nguyễn Văn A / CẨM BÌNH</td><td style="padding:3px 7px;color:#c0392b">✔</td></tr>
-            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">C · VI_TRI_MA_BCT</td><td style="padding:3px 7px">Vị trí (KPI) hoặc Mã BCT (BSC)</td><td style="padding:3px 7px;color:#445566">QLKH / PGD</td><td style="padding:3px 7px;color:#c0392b">✔</td></tr>
-            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">D · KY</td><td style="padding:3px 7px">Kỳ đánh giá</td><td style="padding:3px 7px;color:#445566">Q1/2025</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
-            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">E · NGUOI_GIAO</td><td style="padding:3px 7px">Người giao</td><td style="padding:3px 7px;color:#445566">Trần Văn B</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
-            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">F · HAN</td><td style="padding:3px 7px">Hạn hoàn thành</td><td style="padding:3px 7px;color:#445566">31/03/2025</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
-            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">G · GHI_CHU</td><td style="padding:3px 7px">Ghi chú chung</td><td style="padding:3px 7px;color:#445566">(để trống được)</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
-            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">H · CHI_TIEU</td><td style="padding:3px 7px">Tên chỉ tiêu</td><td style="padding:3px 7px;color:#445566">Dư nợ cuối kỳ</td><td style="padding:3px 7px;color:#c0392b">✔</td></tr>
-            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">I · SO_KH</td><td style="padding:3px 7px">Số kế hoạch</td><td style="padding:3px 7px;color:#445566">1500000</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
-            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">J · DON_VI</td><td style="padding:3px 7px">Đơn vị tính</td><td style="padding:3px 7px;color:#445566">Tr.đ</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
-            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">K · GHI_CHU_CT</td><td style="padding:3px 7px">Ghi chú riêng của chỉ tiêu</td><td style="padding:3px 7px;color:#445566">(để trống được)</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
-          </table>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <!-- KPI -->
+          <div>
+            <div style="font-weight:700;font-size:11px;color:#006B68;margin-bottom:5px">🎯 File KPI (mỗi hàng = 1 chỉ tiêu)</div>
+            <table style="width:100%;font-size:11px;border-collapse:collapse">
+              <tr style="background:#d6f3f0"><td style="padding:3px 6px;font-weight:700">Cột</td><td style="padding:3px 6px;font-weight:700">Mô tả</td><td style="padding:3px 6px;font-weight:700">BB</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#005452">A · PHONG</td><td style="padding:2px 6px">Phòng ban</td><td style="padding:2px 6px;color:#c0392b">✔</td></tr>
+              <tr style="background:#f4fbfa"><td style="padding:2px 6px;font-family:monospace;color:#005452">B · CAN_BO</td><td style="padding:2px 6px">Tên cán bộ</td><td style="padding:2px 6px;color:#c0392b">✔</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#005452">C · VI_TRI</td><td style="padding:2px 6px">Vị trí</td><td style="padding:2px 6px;color:#c0392b">✔</td></tr>
+              <tr style="background:#f4fbfa"><td style="padding:2px 6px;font-family:monospace;color:#005452">D · KY</td><td style="padding:2px 6px">Kỳ đánh giá</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#005452">E · NGUOI_GIAO</td><td style="padding:2px 6px">Người giao</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr style="background:#f4fbfa"><td style="padding:2px 6px;font-family:monospace;color:#005452">F · HAN</td><td style="padding:2px 6px">Hạn hoàn thành</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#005452">G · GHI_CHU</td><td style="padding:2px 6px">Ghi chú chung</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr style="background:#f4fbfa"><td style="padding:2px 6px;font-family:monospace;color:#005452">H · CHI_TIEU</td><td style="padding:2px 6px">Tên chỉ tiêu</td><td style="padding:2px 6px;color:#c0392b">✔</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#005452">I · SO_KH</td><td style="padding:2px 6px">Số kế hoạch</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr style="background:#f4fbfa"><td style="padding:2px 6px;font-family:monospace;color:#005452">J · DON_VI</td><td style="padding:2px 6px">Đơn vị tính</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#005452">K · GHI_CHU_CT</td><td style="padding:2px 6px">Ghi chú chỉ tiêu</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+            </table>
+          </div>
+          <!-- BSC -->
+          <div>
+            <div style="font-weight:700;font-size:11px;color:#8a5e00;margin-bottom:5px">📐 File BSC (mỗi hàng = 1 chỉ tiêu)</div>
+            <table style="width:100%;font-size:11px;border-collapse:collapse">
+              <tr style="background:#f7e9b0"><td style="padding:3px 6px;font-weight:700">Cột</td><td style="padding:3px 6px;font-weight:700">Mô tả</td><td style="padding:3px 6px;font-weight:700">BB</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">A · PHONG</td><td style="padding:2px 6px">Tên phòng ban</td><td style="padding:2px 6px;color:#c0392b">✔</td></tr>
+              <tr style="background:#fffbee"><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">B · MA_BCT</td><td style="padding:2px 6px">Mã BCT</td><td style="padding:2px 6px;color:#c0392b">✔</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">C · KY</td><td style="padding:2px 6px">Kỳ đánh giá</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr style="background:#fffbee"><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">D · NGUOI_GIAO</td><td style="padding:2px 6px">Người giao</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">E · HAN</td><td style="padding:2px 6px">Hạn hoàn thành</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr style="background:#fffbee"><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">F · GHI_CHU</td><td style="padding:2px 6px">Ghi chú chung</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">G · CHI_TIEU</td><td style="padding:2px 6px">Tên chỉ tiêu</td><td style="padding:2px 6px;color:#c0392b">✔</td></tr>
+              <tr style="background:#fffbee"><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">H · KHOI_BAN_BUON</td><td style="padding:2px 6px">Số KH Khối Bán Buôn</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">I · KHOI_BAN_LE</td><td style="padding:2px 6px">Số KH Khối Bán Lẻ</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr style="background:#fffbee"><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">J · TONG_GIAO</td><td style="padding:2px 6px">Tổng giao (tự tính)</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">K · DON_VI</td><td style="padding:2px 6px">Đơn vị tính</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+              <tr style="background:#fffbee"><td style="padding:2px 6px;font-family:monospace;color:#8a5e00">L · GHI_CHU_CT</td><td style="padding:2px 6px">Ghi chú chỉ tiêu</td><td style="padding:2px 6px;color:#8fa3b8">—</td></tr>
+            </table>
+          </div>
           </div>
           <div style="margin-top:10px;font-size:11px;color:#8a5e00;line-height:1.7">
-            ⚠ Các hàng cùng <b>BO_CT + CAN_BO_PHONG + VI_TRI_MA_BCT + KY</b> sẽ được gom thành <b>1 phân giao</b>.<br>
-            ⚠ Hàng thiếu cột A, B, C hoặc H sẽ bị bỏ qua.
+            ⚠ Các hàng cùng <b>PHONG + CAN_BO/MA_BCT + VI_TRI + KY</b> sẽ được gom thành <b>1 phân giao</b>.<br>
+            ⚠ Hàng thiếu cột bắt buộc (✔) sẽ bị bỏ qua.
           </div>
         </div>
         <div class="iz" onclick="document.getElementById('fImpPG').click()" ondragover="dze(event)" ondragleave="dze2(event)" ondrop="dropFPG(event)">
@@ -848,6 +911,7 @@ document.addEventListener('DOMContentLoaded', () => { initApp(); });
     <div class="mft">
       <button class="btn btn-green btn-sm" id="mDuyet" style="display:none">✅ Duyệt</button>
       <button class="btn btn-gold btn-sm" id="mBoduyet" style="display:none">↩ Bỏ duyệt</button>
+      <button class="btn btn-blue btn-sm" id="mSua" style="display:none">✏️ Sửa số KH</button>
       <button class="btn btn-red btn-sm" id="mDel">🗑 Xóa</button>
       <button class="btn btn-green btn-sm" id="mExp">⬇ Xuất Excel</button>
       <button class="btn btn-gray" onclick="closeM('ov-pg')">Đóng</button>
@@ -1091,11 +1155,11 @@ function applyPermissions(){
   const dlBtn = document.getElementById('btnDlSamplePG');
   if(dlBtn){
     dlBtn.textContent = (isTruong()&&CU.phong)
-      ? `⬇ Xuất file import KPI — ${CU.phong}`
-      : '⬇ Tải file mẫu (.xlsx)';
+      ? '⬇ Mẫu KPI — '+CU.phong
+      : '⬇ Mẫu KPI (.xlsx)';
     dlBtn.title = (isTruong()&&CU.phong)
-      ? `Xuất file Excel điền sẵn cán bộ + chỉ tiêu KPI phòng ${CU.phong}`
-      : 'Tải file mẫu import phân giao';
+      ? 'Xuất file Excel điền sẵn cán bộ + chỉ tiêu KPI phòng '+CU.phong
+      : 'Tải file mẫu import phân giao KPI';
   }
   // Topbar button: trưởng/admin thấy nút tạo PG, cb ẩn
   const topBtn = document.getElementById('topNewPG');
@@ -1351,8 +1415,56 @@ function renderChuaPG() {
       </tr>`).join('')
     : '<tr><td colspan="4"><div class="empty">✅ Tất cả phòng đã có BSC!</div></td></tr>';
 
+  // -- Nhóm Chưa giao đủ KPI: đã có PG nhưng còn chỉ tiêu thiếu số KH --
+  const kyFilter = ky;
+  const chuaDuKPI = PG.filter(p=>
+    p.boCT==='KPI' &&
+    (!kyFilter||p.ky===kyFilter) &&
+    p.status!=='approved' &&
+    (p.items||[]).some(v=>!v.soKH||String(v.soKH).trim()==='')
+  );
+  const chuaDuKPIfilt = isTruong()||isCBRole()
+    ? chuaDuKPI.filter(p=>{const cb=CB.find(x=>x.tenCB===p.target);return cb&&cb.phong===CU.phong;})
+    : chuaDuKPI;
+  document.getElementById('chuaDuKPICnt').textContent = chuaDuKPIfilt.length + ' phân giao';
+  document.getElementById('chuaDuKPITb').innerHTML = chuaDuKPIfilt.length
+    ? chuaDuKPIfilt.map((p,i)=>{
+        const thieu=(p.items||[]).filter(v=>!v.soKH||String(v.soKH).trim()==='').length;
+        const rid=p.id;
+        return '<tr class="row-c" style="cursor:pointer" data-pgid="'+rid+'"><td style="color:#8fa3b8;font-size:11px">'+(i+1)+'</td>'
+          +'<td><strong>'+p.target+'</strong></td>'
+          +'<td><span class="ph">'+p.targetSub+'</span></td>'
+          +'<td style="font-size:11.5px">'+(p.ky||'—')+'</td>'
+          +'<td><span style="background:#fdecea;color:#c0392b;font-size:11px;padding:1px 7px;border-radius:10px;font-weight:700">'+thieu+' CT</span></td>'
+          +'<td><button class="btn btn-blue btn-xs" data-sua="kpi" data-pgid="'+rid+'">✏️ Giao tiếp</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="6"><div class="empty">✅ Tất cả phân giao KPI đã đủ số!</div></td></tr>';
+
+  // -- Nhóm Chưa giao đủ BSC --
+  const chuaDuBSC = isAdmin() ? PG.filter(p=>
+    p.boCT==='BSC' &&
+    (!kyFilter||p.ky===kyFilter) &&
+    p.status!=='approved' &&
+    (p.items||[]).some(v=>!v.soKH||String(v.soKH).trim()==='')
+  ) : [];
+  document.getElementById('chuaDuBSCCnt').textContent = chuaDuBSC.length + ' phân giao';
+  document.getElementById('chuaDuBSCTb').innerHTML = chuaDuBSC.length
+    ? chuaDuBSC.map((p,i)=>{
+        const thieu=(p.items||[]).filter(v=>!v.soKH||String(v.soKH).trim()==='').length;
+        const brid=p.id;
+        return '<tr class="row-c" style="cursor:pointer" data-pgid="'+brid+'"><td style="color:#8fa3b8;font-size:11px">'+(i+1)+'</td>'
+          +'<td><strong>'+p.target+'</strong></td>'
+          +'<td><span class="ph">'+p.targetKey+'</span></td>'
+          +'<td style="font-size:11.5px">'+(p.ky||'—')+'</td>'
+          +'<td><span style="background:#fdecea;color:#c0392b;font-size:11px;padding:1px 7px;border-radius:10px;font-weight:700">'+thieu+' CT</span></td>'
+          +'<td><button class="btn btn-blue btn-xs" data-sua="bsc" data-pgid="'+brid+'">✏️ Giao tiếp</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="6"><div class="empty">✅ Tất cả phân giao BSC đã đủ số!</div></td></tr>';
+
   // -- Badge tổng --
-  const total = chuaCB.length + (isAdmin() ? chuaPhong.length : 0);
+  const total = chuaCB.length + (isAdmin() ? chuaPhong.length : 0) + chuaDuKPIfilt.length + chuaDuBSC.length;
   document.getElementById('chuaPGBadge').textContent = total;
   document.getElementById('chuaPGBadge').style.display = total ? '' : 'none';
 
@@ -1410,6 +1522,71 @@ function goGiaoBSC(phong, maBCT) {
     setTimeout(()=>{
       pickTargetBSC(phong, maBCT);
       wzNext(2);
+    }, 80);
+  }, 80);
+}
+
+// Giao tiếp: mở wizard bước 3 với số KH đã có điền sẵn
+function goSuaKPI(pgId){
+  const p=PG.find(x=>x.id===pgId); if(!p)return;
+  const cb=CB.find(x=>x.tenCB===p.target); if(!cb)return;
+  go(document.querySelector('[data-s=tao]'));
+  switchTaoTab(1);
+  setTimeout(()=>{
+    pickBC('KPI');
+    wzNext(1);
+    setTimeout(()=>{
+      pickTargetKPI(cb.maCB, cb.tenCB, cb.phong, cb.viTri);
+      // Điền trước info wizard
+      document.getElementById('pgNG').value = p.nguoiGiao||'';
+      document.getElementById('pgKy').value = p.ky||'';
+      document.getElementById('pgHan').value = p.han||'';
+      document.getElementById('pgGC').value  = p.ghiChu||'';
+      wzNext(2);
+      setTimeout(()=>{
+        // Điền lại số KH đã có vào bước 3
+        (p.items||[]).forEach((v,i)=>{
+          const el=document.getElementById('v_'+i);
+          if(el&&v.soKH) el.value=v.soKH;
+          const uel=document.getElementById('u_'+i);
+          if(uel&&v.donVi) uel.value=v.donVi;
+          const nel=document.getElementById('n_'+i);
+          if(nel&&v.ghiChu) nel.value=v.ghiChu;
+        });
+        // Lưu pgId gốc để xóa sau khi xác nhận
+        WZ._replacePGId = pgId;
+      }, 120);
+    }, 80);
+  }, 80);
+}
+
+function goSuaBSC(pgId){
+  const p=PG.find(x=>x.id===pgId); if(!p)return;
+  go(document.querySelector('[data-s=tao]'));
+  switchTaoTab(1);
+  setTimeout(()=>{
+    pickBC('BSC');
+    wzNext(1);
+    setTimeout(()=>{
+      pickTargetBSC(p.target, p.targetKey);
+      document.getElementById('pgNG').value = p.nguoiGiao||'';
+      document.getElementById('pgKy').value = p.ky||'';
+      document.getElementById('pgHan').value = p.han||'';
+      document.getElementById('pgGC').value  = p.ghiChu||'';
+      wzNext(2);
+      setTimeout(()=>{
+        (p.items||[]).forEach((v,i)=>{
+          const bbEl=document.getElementById('bb_'+i);
+          if(bbEl&&v.khoiBanBuon){bbEl.value=v.khoiBanBuon; calcTong(i);}
+          const blEl=document.getElementById('bl_'+i);
+          if(blEl&&v.khoiBanLe){blEl.value=v.khoiBanLe; calcTong(i);}
+          const uel=document.getElementById('u_'+i);
+          if(uel&&v.donVi) uel.value=v.donVi;
+          const nel=document.getElementById('n_'+i);
+          if(nel&&v.ghiChu) nel.value=v.ghiChu;
+        });
+        WZ._replacePGId = pgId;
+      }, 120);
     }, 80);
   }, 80);
 }
@@ -1686,6 +1863,11 @@ function savePG(){
   const ng=document.getElementById('pgNG').value.trim();
   if(!ng){alert('Vui lòng nhập tên người giao!');return;}
   const khCnt=WZ.vals.filter(v=>v.soKH).length;
+  // Nếu đang "giao tiếp" — xóa phân giao cũ rồi thay bằng cái mới
+  if(WZ._replacePGId){
+    PG=PG.filter(x=>x.id!==WZ._replacePGId);
+    WZ._replacePGId=null;
+  }
   PG.push({
     id:uid(), boCT:WZ.boCT,
     target:WZ.targetName, targetKey:WZ.targetKey, targetSub:WZ.targetSub||'',
@@ -1846,6 +2028,10 @@ function viewPG(id){
     if(p.status==='approved'){alert('Phân giao đã duyệt! Yêu cầu Admin bỏ duyệt trước.');return;}
     if(confirm('Xóa phân giao này?')){delPG(id);closeM('ov-pg');}
   };
+  // Nút Sửa — chỉ khi chưa duyệt và có quyền
+  const canSua = can.suaPG(p);
+  document.getElementById('mSua').style.display=canSua?'':'none';
+  document.getElementById('mSua').onclick=()=>openEditPG(id);
   document.getElementById('mExp').onclick=()=>exportSinglePG(id);
   openM('ov-pg');
 }
@@ -2349,42 +2535,93 @@ function importFilePG(file){
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       if(rows.length<2){throw new Error('File không có dữ liệu (cần ít nhất 1 hàng dữ liệu sau hàng tiêu đề)!');}
 
-      // Group rows → phân giao. Key = boCT|cb|key2|ky
+      // Nhận diện format file dựa trên header hàng 0
+      const hdr=rows[0].map(h=>String(h||'').trim().toUpperCase());
+      // 3 format được hỗ trợ:
+      // [A] BSC mới:  PHONG|MA_BCT|KY|...|CHI_TIEU|BB|BL|TONG|DON_VI|GHI_CHU_CT
+      // [B] KPI mới:  PHONG|CAN_BO|VI_TRI|KY|...|CHI_TIEU|SO_KH|DON_VI|GHI_CHU_CT
+      // [C] Cũ:       BO_CT|CAN_BO_PHONG|VI_TRI_MA_BCT|KY|...|CHI_TIEU|SO_KH|DON_VI|GHI_CHU_CT
+      const isLegacy  = hdr[0]==='BO_CT' || hdr.includes('CAN_BO_PHONG');
+      const isBSCFile = !isLegacy && (hdr.includes('MA_BCT') || hdr.includes('KHOI_BAN_BUON'));
       const pgMap=new Map();
       let skipped=0;
+
       for(let i=1;i<rows.length;i++){
         const r=rows[i];
-        const boCT=String(r[0]||'').trim().toUpperCase();
-        const cb=String(r[1]||'').trim();
-        const key2=String(r[2]||'').trim();
-        const ky=String(r[3]||'').trim();
-        const ng=String(r[4]||'').trim();
-        const han=String(r[5]||'').trim();
-        const gc=String(r[6]||'').trim();
-        const ct=String(r[7]||'').trim();
-        const soKH=String(r[8]||'').trim();
-        const donVi=String(r[9]||'').trim();
-        const gcCT=String(r[10]||'').trim();
+        let phong,cb,key2,ky,ng,han,gc,ct,soKH,bb,bl,donVi,gcCT,bo;
 
-        // bỏ qua hàng thiếu cột bắt buộc
-        if(!cb||!ct){skipped++;continue;}
-        const bo=(boCT==='KPI')?'KPI':'BSC';
-        const pgKey=`${bo}|${cb}|${key2}|${ky}`;
+        if(isLegacy){
+          // Format cũ: BO_CT|CAN_BO_PHONG|VI_TRI_MA_BCT|KY|NGUOI_GIAO|HAN|GHI_CHU|CHI_TIEU|SO_KH|DON_VI|GHI_CHU_CT
+          bo   =String(r[0]||'').trim().toUpperCase()==='KPI'?'KPI':'BSC';
+          cb   =String(r[1]||'').trim();
+          key2 =String(r[2]||'').trim();
+          ky   =String(r[3]||'').trim();
+          ng   =String(r[4]||'').trim();
+          han  =String(r[5]||'').trim();
+          gc   =String(r[6]||'').trim();
+          ct   =String(r[7]||'').trim();
+          soKH =String(r[8]||'').trim();
+          donVi=String(r[9]||'').trim();
+          gcCT =String(r[10]||'').trim();
+          bb=''; bl=''; phong=cb;
+          if(!cb||!ct){skipped++;continue;}
+        } else if(isBSCFile){
+          // Format BSC mới: PHONG|MA_BCT|KY|NGUOI_GIAO|HAN|GHI_CHU|CHI_TIEU|BB|BL|TONG|DON_VI|GHI_CHU_CT
+          phong=String(r[0]||'').trim();
+          key2 =String(r[1]||'').trim();
+          ky   =String(r[2]||'').trim();
+          ng   =String(r[3]||'').trim();
+          han  =String(r[4]||'').trim();
+          gc   =String(r[5]||'').trim();
+          ct   =String(r[6]||'').trim();
+          bb   =String(r[7]||'').trim();
+          bl   =String(r[8]||'').trim();
+          const tongRaw=String(r[9]||'').trim();
+          const bbN=parseFloat(bb.replace(/,/g,'.'))||0;
+          const blN=parseFloat(bl.replace(/,/g,'.'))||0;
+          soKH=(bbN+blN)>0?String(bbN+blN):tongRaw;
+          donVi=String(r[10]||'').trim();
+          gcCT =String(r[11]||'').trim();
+          cb=phong; bo='BSC';
+          if(!phong||!ct){skipped++;continue;}
+        } else {
+          // Format KPI mới: PHONG|CAN_BO|VI_TRI|KY|NGUOI_GIAO|HAN|GHI_CHU|CHI_TIEU|SO_KH|DON_VI|GHI_CHU_CT
+          phong=String(r[0]||'').trim();
+          cb   =String(r[1]||'').trim();
+          key2 =String(r[2]||'').trim();
+          ky   =String(r[3]||'').trim();
+          ng   =String(r[4]||'').trim();
+          han  =String(r[5]||'').trim();
+          gc   =String(r[6]||'').trim();
+          ct   =String(r[7]||'').trim();
+          soKH =String(r[8]||'').trim();
+          donVi=String(r[9]||'').trim();
+          gcCT =String(r[10]||'').trim();
+          bb=''; bl=''; bo='KPI';
+          if(!cb||!ct){skipped++;continue;}
+        }
+
+        const pgKey=bo+'|'+cb+'|'+key2+'|'+ky;
         if(!pgMap.has(pgKey)){
           pgMap.set(pgKey,{
-            id:uid(),boCT:bo,
+            id:uid(), boCT:bo,
             target:cb,
             targetKey:key2,
             targetSub:bo==='BSC'?'Mã BCT: '+key2:(key2?'Vị trí: '+key2:''),
-            ky,nguoiGiao:ng,han,ghiChu:gc,
+            phongGiao:phong,
+            ky, nguoiGiao:ng, han, ghiChu:gc,
             ngayGiao:new Date().toLocaleDateString('vi-VN'),
+            taoBy:CU?CU.un:'',
+            status:'pending', approvedBy:'', approvedAt:'',
             items:[]
           });
         }
-        pgMap.get(pgKey).items.push({chiTieu:ct,soKH,donVi,ghiChu:gcCT});
+        const item={chiTieu:ct, soKH, donVi, ghiChu:gcCT};
+        if(isBSCFile){item.khoiBanBuon=bb; item.khoiBanLe=bl;}
+        pgMap.get(pgKey).items.push(item);
       }
 
-      if(!pgMap.size){throw new Error('Không tìm thấy dữ liệu hợp lệ. Kiểm tra lại cột A (BO_CT), B (CAN_BO_PHONG) và H (CHI_TIEU) không được để trống!');}
+      if(!pgMap.size){throw new Error('Không tìm thấy dữ liệu hợp lệ. Kiểm tra cột bắt buộc không được để trống!');}
 
       const newPGs=[...pgMap.values()].map(p=>({
         ...p,ctCount:p.items.length,khCount:p.items.filter(v=>v.soKH).length
@@ -2403,11 +2640,28 @@ function importFilePG(file){
         </tr>`).join('');
       const more=newPGs.length>5?`<tr><td colspan="7" style="text-align:center;color:#8fa3b8;font-size:11px">... và ${newPGs.length-5} phân giao khác</td></tr>`:'';
 
+      // Tính số PG trùng sẽ bị thay thế (chưa duyệt)
+      const dupCount=newPGs.filter(np=>{
+        const key=np.boCT+'|'+np.target+'|'+np.targetKey+'|'+np.ky;
+        return PG.some(op=>op.boCT+'|'+op.target+'|'+op.targetKey+'|'+op.ky===key && op.status!=='approved');
+      }).length;
+      const dupApproved=newPGs.filter(np=>{
+        const key=np.boCT+'|'+np.target+'|'+np.targetKey+'|'+np.ky;
+        return PG.some(op=>op.boCT+'|'+op.target+'|'+op.targetKey+'|'+op.ky===key && op.status==='approved');
+      }).length;
+
       alertEl.innerHTML=`
         <div class="alert a-ok" style="margin-bottom:10px">
           ✅ Đọc thành công <b>${newPGs.length} phân giao</b> · <b>${newPGs.reduce((s,p)=>s+p.ctCount,0)} chỉ tiêu</b>
           ${skipped?` · <span style="color:#8a5e00">${skipped} hàng bị bỏ qua (thiếu dữ liệu)</span>`:''}
         </div>
+        ${dupCount?`<div class="alert" style="background:#fff8e0;border:1px solid #f0d080;color:#8a5e00;margin-bottom:10px">
+          🔄 <b>${dupCount} phân giao</b> trùng (chưa duyệt) sẽ bị <b>thay thế</b> bằng dữ liệu mới.
+          ${dupApproved?`<br>⚠️ <b>${dupApproved} phân giao đã duyệt</b> trùng — sẽ <b>giữ nguyên</b>, không ghi đè.`:''}
+        </div>`:''}
+        ${dupApproved&&!dupCount?`<div class="alert" style="background:#fdecea;border:1px solid #f5b7b1;color:#c0392b;margin-bottom:10px">
+          ⚠️ <b>${dupApproved} phân giao đã duyệt</b> trùng — sẽ <b>giữ nguyên</b>, không ghi đè.
+        </div>`:''}
         <div class="card" style="margin-bottom:10px">
           <div class="card-h"><div class="card-t">Xem trước (tối đa 5 dòng đầu)</div></div>
           <div class="tw"><table>
@@ -2416,7 +2670,7 @@ function importFilePG(file){
           </table></div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn btn-green" onclick="confirmImportPG()">✅ Xác nhận lưu ${newPGs.length} phân giao</button>
+          <button class="btn btn-green" onclick="confirmImportPG()">✅ Xác nhận lưu ${newPGs.length} phân giao${dupCount?' (thay '+dupCount+' cũ)':''}</button>
           <button class="btn btn-gray btn-sm" onclick="document.getElementById('impPGAlert').innerHTML='';_pendingPG=null">✖ Hủy</button>
         </div>`;
       window._pendingPG=newPGs;
@@ -2430,76 +2684,155 @@ function importFilePG(file){
 function confirmImportPG(){
   if(!window._pendingPG||!window._pendingPG.length)return;
   const newPGs=window._pendingPG;
+  // Xóa các PG cũ trùng (boCT + target + targetKey + ky) nếu chưa duyệt
+  let replaced=0;
+  newPGs.forEach(np=>{
+    const key=np.boCT+'|'+np.target+'|'+np.targetKey+'|'+np.ky;
+    const before=PG.length;
+    PG=PG.filter(op=>{
+      const opKey=op.boCT+'|'+op.target+'|'+op.targetKey+'|'+op.ky;
+      if(opKey===key && op.status!=='approved'){return false;}
+      return true;
+    });
+    replaced+=before-PG.length;
+  });
   PG=[...PG,...newPGs];
   sPG();updBadges();renderDash();
+  if(document.getElementById('sec-ds').classList.contains('show')) renderDS();
   window._pendingPG=null;
   document.getElementById('fImpPG').value='';
-  document.getElementById('impPGAlert').innerHTML=`<div class="alert a-ok">✅ Đã lưu thành công <b>${newPGs.length} phân giao</b>! <a href="#" onclick="event.preventDefault();go(document.querySelector('[data-s=ds]'))" style="color:#005452;font-weight:700">→ Xem danh sách phân giao</a></div>`;
+  document.getElementById('impPGAlert').innerHTML=`<div class="alert a-ok">✅ Đã lưu <b>${newPGs.length} phân giao</b>${replaced?' · thay thế <b>'+replaced+' phân giao cũ</b>':''}! <a href="#" onclick="event.preventDefault();go(document.querySelector('[data-s=ds]'))" style="color:#005452;font-weight:700">→ Xem danh sách</a></div>`;
 }
 
-function downloadSamplePG(){
+function downloadSamplePG(type){
   const wb=XLSX.utils.book_new();
-  const header=['BO_CT','CAN_BO_PHONG','VI_TRI_MA_BCT','KY','NGUOI_GIAO','HAN','GHI_CHU','CHI_TIEU','SO_KH','DON_VI','GHI_CHU_CT'];
+  const dateStr=new Date().toLocaleDateString('vi-VN').replace(/\//g,'-');
 
-  if(isTruong() && CU.phong){
-    // Xuất file điền sẵn cán bộ + chỉ tiêu KPI của phòng mình
-    const myPhong = CU.phong;
-    const myCB = CB.filter(c => c.phong === myPhong && c.trangThai === 'HOAT_DONG');
-    const rows = [header];
-
-    myCB.forEach(c => {
-      const ctList = VT[c.viTri] || [];
-      if(ctList.length === 0){
-        // Cán bộ có vị trí nhưng chưa có chỉ tiêu — thêm 1 hàng trống
-        rows.push(['KPI', c.tenCB, c.viTri, '', CU.hn, '', '', '', '', '', '']);
+  if(type==='BSC'){
+    // ── File mẫu BSC ──
+    const hdrBSC=['PHONG','MA_BCT','KY','NGUOI_GIAO','HAN','GHI_CHU','CHI_TIEU','KHOI_BAN_BUON','KHOI_BAN_LE','TONG_GIAO','DON_VI','GHI_CHU_CT'];
+    const rows=[hdrBSC];
+    // Điền sẵn tất cả phòng + chỉ tiêu BSC
+    Object.entries(PB).forEach(([phong,maBCT])=>{
+      const ctList=BSC[maBCT]||[];
+      if(ctList.length===0){
+        rows.push([phong,maBCT,'','','','','','','','','','']);
       } else {
-        ctList.forEach(ct => {
-          rows.push(['KPI', c.tenCB, c.viTri, '', CU.hn, '', '', ct, '', '', '']);
+        ctList.forEach(ct=>{
+          rows.push([phong,maBCT,'',CU?CU.hn:'','','',ct,'','','','','']);
         });
       }
     });
-
-    if(myCB.length === 0){
-      // Fallback nếu phòng chưa có cán bộ
-      rows.push(['KPI','(chưa có cán bộ)','','','','','','','','','']);
-    }
-
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    // Style header row
-    ws['!cols'] = [7,24,14,10,20,12,15,55,14,10,15].map(w=>({wch:w}));
-    // Freeze header row
-    ws['!freeze'] = {xSplit:0, ySplit:1};
-
-    // Highlight header cells
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    for(let C=range.s.c; C<=range.e.c; C++){
-      const cell = ws[XLSX.utils.encode_cell({r:0,c:C})];
-      if(cell) cell.s = {font:{bold:true},fill:{fgColor:{rgb:'1565C0'}},font:{color:{rgb:'FFFFFF'},bold:true}};
-    }
-
-    XLSX.utils.book_append_sheet(wb, ws, 'KPI_'+myPhong.replace(/[^a-zA-Z0-9]/g,'_').slice(0,20));
-    XLSX.writeFile(wb, `IMPORT_KPI_${myPhong}_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`);
-
-  } else {
-    // Admin hoặc chưa đăng nhập: xuất file mẫu ví dụ như cũ
-    const rows=[
-      header,
-      ['KPI','Nguyễn Văn A','QLKH','Q1/2025','Trần Văn B','31/03/2025','','Dư nợ cuối kỳ','1500000','Tr.đ',''],
-      ['KPI','Nguyễn Văn A','QLKH','Q1/2025','Trần Văn B','31/03/2025','','Huy động vốn cuối kỳ','2000000','Tr.đ',''],
-      ['BSC','CẨM BÌNH','PGD','Q1/2025','Trần Văn B','31/03/2025','','Dư nợ tín dụng cuối kỳ','800000','Tr.đ',''],
-    ];
+    if(rows.length===1) rows.push(['(chưa có phòng)','','','','','','','','','','','']);
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[7,22,14,10,18,12,15,50,14,10,15].map(w=>({wch:w}));
-    XLSX.utils.book_append_sheet(wb,ws,'PhanGiao');
-    XLSX.writeFile(wb,'MAUIMPORT_PhanGiao.xlsx');
+    ws['!cols']=[20,10,10,18,12,15,50,14,14,14,10,15].map(w=>({wch:w}));
+    ws['!freeze']={xSplit:0,ySplit:1};
+    XLSX.utils.book_append_sheet(wb,ws,'BSC');
+    XLSX.writeFile(wb,'IMPORT_BSC_'+dateStr+'.xlsx');
+    return;
   }
+
+  // ── File mẫu KPI ──
+  const hdrKPI=['PHONG','CAN_BO','VI_TRI','KY','NGUOI_GIAO','HAN','GHI_CHU','CHI_TIEU','SO_KH','DON_VI','GHI_CHU_CT'];
+  const rows=[hdrKPI];
+  if(isTruong()&&CU.phong){
+    // Trưởng: điền sẵn cán bộ phòng mình
+    CB.filter(x=>x.phong===CU.phong&&x.trangThai==='HOAT_DONG').forEach(cb=>{
+      const ctList=VT[cb.viTri]||[];
+      if(ctList.length===0){
+        rows.push([cb.phong,cb.tenCB,cb.viTri,'',CU.hn,'','','','','','']);
+      } else {
+        ctList.forEach(ct=>rows.push([cb.phong,cb.tenCB,cb.viTri,'',CU.hn,'','',ct,'','','']));
+      }
+    });
+    if(rows.length===1) rows.push([CU.phong,'(chưa có cán bộ)','','','','','','','','','']);
+  } else {
+    // Admin: mẫu ví dụ đầy đủ
+    rows.push(['KHCN','Nguyễn Văn A','QLKH','Quý 1','Trần Văn B','31/03/2025','','Dư nợ cuối kỳ','1500000','Tr.đ','']);
+    rows.push(['KHCN','Nguyễn Văn A','QLKH','Quý 1','Trần Văn B','31/03/2025','','Huy động vốn cuối kỳ','2000000','Tr.đ','']);
+    rows.push(['KHDN','Lê Thị B','QLKHDN','Quý 1','Trần Văn B','31/03/2025','','Dư nợ KHTC cuối kỳ','500000','Tr.đ','']);
+  }
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[18,22,12,10,18,12,15,50,14,10,15].map(w=>({wch:w}));
+  ws['!freeze']={xSplit:0,ySplit:1};
+  const sheetName=isTruong()&&CU.phong?'KPI_'+CU.phong.replace(/[^a-zA-Z0-9]/g,'_').slice(0,18):'KPI';
+  XLSX.utils.book_append_sheet(wb,ws,sheetName);
+  XLSX.writeFile(wb,'IMPORT_KPI_'+dateStr+'.xlsx');
 }
 
 // ═══════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════�═══════════════════════════
 // DOMContentLoaded handled by Firebase module above
+
+
+// ── Edit PG inline ──
+let _editPGId = null;
+
+function openEditPG(id){
+  const p=PG.find(x=>x.id===id); if(!p)return;
+  _editPGId=id;
+  document.getElementById('editPGSub').textContent=p.boCT+' · '+p.target+' · '+p.targetKey+' · '+p.ctCount+' chỉ tiêu';
+  document.getElementById('editPGAlert').innerHTML='';
+  const isBSC=p.boCT==='BSC';
+  // Header
+  document.getElementById('editPGHead').innerHTML='<tr><th>#</th><th>Tên chỉ tiêu</th>'
+    +(isBSC?'<th style="text-align:right;width:120px;color:#005452">Bán Buôn</th><th style="text-align:right;width:120px;color:#005452">Bán Lẻ</th><th style="text-align:right;width:120px;color:#006B68">Tổng giao</th>':'<th style="text-align:right;width:130px">Số kế hoạch</th>')
+    +'<th style="width:100px">Đơn vị</th><th style="min-width:100px">Ghi chú</th></tr>';
+  // Rows
+  document.getElementById('editPGTb').innerHTML=(p.items||[]).map((v,i)=>{
+    const inputCols=isBSC
+      ? '<td><input type="text" class="bi" id="ep_bb_'+i+'" value="'+(v.khoiBanBuon||'')+'" placeholder="0" inputmode="decimal" oninput="epCalcTong('+i+')"></td>'
+        +'<td><input type="text" class="bi" id="ep_bl_'+i+'" value="'+(v.khoiBanLe||'')+'" placeholder="0" inputmode="decimal" oninput="epCalcTong('+i+')"></td>'
+        +'<td><input type="text" class="ti" id="ep_v_'+i+'" value="'+(v.soKH||'')+'" readonly tabindex="-1" placeholder="—"></td>'
+      : '<td><input type="text" class="vi" id="ep_v_'+i+'" value="'+(v.soKH||'')+'" placeholder="Nhập số..." inputmode="decimal"></td>';
+    return '<tr>'
+      +'<td style="color:#8fa3b8;font-size:11px">'+(i+1)+'</td>'
+      +'<td style="font-size:12.5px;max-width:220px">'+v.chiTieu+'</td>'
+      +inputCols
+      +'<td><input type="text" class="ui" id="ep_u_'+i+'" value="'+(v.donVi||'')+'" placeholder="Đơn vị"></td>'
+      +'<td><input type="text" class="ni" id="ep_n_'+i+'" value="'+(v.ghiChu||'')+'" placeholder="Ghi chú"></td>'
+      +'</tr>';
+  }).join('');
+  closeM('ov-pg');
+  openM('ov-editpg');
+  setTimeout(()=>{const el=document.getElementById(isBSC?'ep_bb_0':'ep_v_0');if(el)el.focus();},120);
+}
+
+function epCalcTong(i){
+  const bb=parseFloat((document.getElementById('ep_bb_'+i)||{value:''}).value.replace(/,/g,'.'))||0;
+  const bl=parseFloat((document.getElementById('ep_bl_'+i)||{value:''}).value.replace(/,/g,'.'))||0;
+  const el=document.getElementById('ep_v_'+i);
+  if(el) el.value=(bb+bl)>0?(bb+bl).toLocaleString('vi-VN'):'';
+}
+
+function saveEditPG(){
+  const p=PG.find(x=>x.id===_editPGId); if(!p)return;
+  const isBSC=p.boCT==='BSC';
+  const newItems=(p.items||[]).map((v,i)=>{
+    const updated=Object.assign({},v);
+    if(isBSC){
+      updated.khoiBanBuon=(document.getElementById('ep_bb_'+i)||{value:''}).value.trim();
+      updated.khoiBanLe =(document.getElementById('ep_bl_'+i)||{value:''}).value.trim();
+    }
+    updated.soKH =(document.getElementById('ep_v_'+i)||{value:''}).value.trim();
+    updated.donVi=(document.getElementById('ep_u_'+i)||{value:''}).value.trim();
+    updated.ghiChu=(document.getElementById('ep_n_'+i)||{value:''}).value.trim();
+    return updated;
+  });
+  p.items=newItems;
+  p.khCount=newItems.filter(v=>v.soKH&&v.soKH.trim()!=='').length;
+  sPG();
+  updBadges();
+  renderDash();
+  if(document.getElementById('sec-ds').classList.contains('show')) renderDS();
+  const al=document.getElementById('editPGAlert');
+  al.innerHTML='<div class="alert a-ok">✅ Đã lưu thay đổi!</div>';
+  setTimeout(()=>{closeM('ov-editpg'); viewPG(_editPGId);},900);
+}
+
 </script>
+</html>
 
 <!-- MODAL: Đổi mật khẩu -->
 <div class="ov" id="ov-chpass">
@@ -2526,6 +2859,128 @@ function downloadSamplePG(){
     <div class="mft">
       <button class="btn btn-gray" onclick="closeM('ov-chpass')">Hủy</button>
       <button class="btn btn-blue" onclick="doChangePass()">💾 Đổi mật khẩu</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Sửa số KH phân giao -->
+<div class="ov" id="ov-editpg">
+  <div class="modal" style="max-width:720px">
+    <div class="mhd">
+      <div>
+        <div class="mtt">✏️ Sửa số kế hoạch</div>
+        <div id="editPGSub" style="font-size:11.5px;color:#8fa3b8;margin-top:2px"></div>
+      </div>
+      <button class="mxb" onclick="closeM('ov-editpg')">✕</button>
+    </div>
+    <div class="mbd">
+      <div id="editPGAlert"></div>
+      <div style="overflow-y:auto;max-height:420px">
+        <table class="at">
+          <thead id="editPGHead">
+            <tr><th>#</th><th>Tên chỉ tiêu</th><th style="text-align:right;width:130px">Số kế hoạch</th><th style="width:110px">Đơn vị</th><th style="min-width:110px">Ghi chú</th></tr>
+          </thead>
+          <tbody id="editPGTb"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn btn-gray" onclick="closeM('ov-editpg')">Hủy</button>
+      <button class="btn btn-blue" onclick="saveEditPG()">💾 Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+// ── Edit PG inline ──
+let _editPGId = null;
+
+function openEditPG(id){
+  const p=PG.find(x=>x.id===id); if(!p)return;
+  _editPGId=id;
+  document.getElementById('editPGSub').textContent=p.boCT+' · '+p.target+' · '+p.targetKey+' · '+p.ctCount+' chỉ tiêu';
+  document.getElementById('editPGAlert').innerHTML='';
+  const isBSC=p.boCT==='BSC';
+  // Header
+  document.getElementById('editPGHead').innerHTML='<tr><th>#</th><th>Tên chỉ tiêu</th>'
+    +(isBSC?'<th style="text-align:right;width:120px;color:#005452">Bán Buôn</th><th style="text-align:right;width:120px;color:#005452">Bán Lẻ</th><th style="text-align:right;width:120px;color:#006B68">Tổng giao</th>':'<th style="text-align:right;width:130px">Số kế hoạch</th>')
+    +'<th style="width:100px">Đơn vị</th><th style="min-width:100px">Ghi chú</th></tr>';
+  // Rows
+  document.getElementById('editPGTb').innerHTML=(p.items||[]).map((v,i)=>{
+    const inputCols=isBSC
+      ? '<td><input type="text" class="bi" id="ep_bb_'+i+'" value="'+(v.khoiBanBuon||'')+'" placeholder="0" inputmode="decimal" oninput="epCalcTong('+i+')"></td>'
+        +'<td><input type="text" class="bi" id="ep_bl_'+i+'" value="'+(v.khoiBanLe||'')+'" placeholder="0" inputmode="decimal" oninput="epCalcTong('+i+')"></td>'
+        +'<td><input type="text" class="ti" id="ep_v_'+i+'" value="'+(v.soKH||'')+'" readonly tabindex="-1" placeholder="—"></td>'
+      : '<td><input type="text" class="vi" id="ep_v_'+i+'" value="'+(v.soKH||'')+'" placeholder="Nhập số..." inputmode="decimal"></td>';
+    return '<tr>'
+      +'<td style="color:#8fa3b8;font-size:11px">'+(i+1)+'</td>'
+      +'<td style="font-size:12.5px;max-width:220px">'+v.chiTieu+'</td>'
+      +inputCols
+      +'<td><input type="text" class="ui" id="ep_u_'+i+'" value="'+(v.donVi||'')+'" placeholder="Đơn vị"></td>'
+      +'<td><input type="text" class="ni" id="ep_n_'+i+'" value="'+(v.ghiChu||'')+'" placeholder="Ghi chú"></td>'
+      +'</tr>';
+  }).join('');
+  closeM('ov-pg');
+  openM('ov-editpg');
+  setTimeout(()=>{const el=document.getElementById(isBSC?'ep_bb_0':'ep_v_0');if(el)el.focus();},120);
+}
+
+function epCalcTong(i){
+  const bb=parseFloat((document.getElementById('ep_bb_'+i)||{value:''}).value.replace(/,/g,'.'))||0;
+  const bl=parseFloat((document.getElementById('ep_bl_'+i)||{value:''}).value.replace(/,/g,'.'))||0;
+  const el=document.getElementById('ep_v_'+i);
+  if(el) el.value=(bb+bl)>0?(bb+bl).toLocaleString('vi-VN'):'';
+}
+
+function saveEditPG(){
+  const p=PG.find(x=>x.id===_editPGId); if(!p)return;
+  const isBSC=p.boCT==='BSC';
+  const newItems=(p.items||[]).map((v,i)=>{
+    const updated=Object.assign({},v);
+    if(isBSC){
+      updated.khoiBanBuon=(document.getElementById('ep_bb_'+i)||{value:''}).value.trim();
+      updated.khoiBanLe =(document.getElementById('ep_bl_'+i)||{value:''}).value.trim();
+    }
+    updated.soKH =(document.getElementById('ep_v_'+i)||{value:''}).value.trim();
+    updated.donVi=(document.getElementById('ep_u_'+i)||{value:''}).value.trim();
+    updated.ghiChu=(document.getElementById('ep_n_'+i)||{value:''}).value.trim();
+    return updated;
+  });
+  p.items=newItems;
+  p.khCount=newItems.filter(v=>v.soKH&&v.soKH.trim()!=='').length;
+  sPG();
+  updBadges();
+  renderDash();
+  if(document.getElementById('sec-ds').classList.contains('show')) renderDS();
+  const al=document.getElementById('editPGAlert');
+  al.innerHTML='<div class="alert a-ok">✅ Đã lưu thay đổi!</div>';
+  setTimeout(()=>{closeM('ov-editpg'); viewPG(_editPGId);},900);
+}
+
+
+<!-- MODAL: Sửa số KH phân giao -->
+<div class="ov" id="ov-editpg">
+  <div class="modal" style="max-width:720px">
+    <div class="mhd">
+      <div>
+        <div class="mtt">✏️ Sửa số kế hoạch</div>
+        <div id="editPGSub" style="font-size:11.5px;color:#8fa3b8;margin-top:2px"></div>
+      </div>
+      <button class="mxb" onclick="closeM('ov-editpg')">✕</button>
+    </div>
+    <div class="mbd">
+      <div id="editPGAlert"></div>
+      <div style="overflow-y:auto;max-height:420px">
+        <table class="at">
+          <thead id="editPGHead">
+            <tr><th>#</th><th>Tên chỉ tiêu</th><th style="text-align:right;width:130px">Số kế hoạch</th><th style="width:110px">Đơn vị</th><th style="min-width:110px">Ghi chú</th></tr>
+          </thead>
+          <tbody id="editPGTb"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn btn-gray" onclick="closeM('ov-editpg')">Hủy</button>
+      <button class="btn btn-blue" onclick="saveEditPG()">💾 Lưu thay đổi</button>
     </div>
   </div>
 </div>
