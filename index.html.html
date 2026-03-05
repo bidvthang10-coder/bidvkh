@@ -1,0 +1,2517 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIDV · Phân Giao Chỉ Tiêu KPI &amp; BSC</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#eef2f7;color:#0f1f30;font-size:13.5px;line-height:1.5;}
+.app{display:flex;height:100vh;overflow:hidden;}
+.sb{width:215px;background:#004442;display:flex;flex-direction:column;flex-shrink:0;}
+.sb-logo{padding:15px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sb-brand{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);font-weight:700;}
+.sb-name{font-size:15px;font-weight:800;color:#fff;margin-top:4px;line-height:1.25;}
+.sb-name b{color:#FFC62F;}
+.sb-nav{flex:1;overflow-y:auto;padding:6px 0;}
+.sb-sec{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.25);padding:12px 14px 4px;font-weight:700;}
+.sb-a{display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;color:rgba(255,255,255,.58);font-size:12.5px;font-weight:500;border-left:3px solid transparent;user-select:none;transition:background .12s;}
+.sb-a:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9);}
+.sb-a.on{background:rgba(255,255,255,.12);color:#fff;border-left-color:#FFC62F;}
+.sb-ic{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+.sb-bx{margin-left:auto;background:rgba(255,198,47,.22);color:#FFC62F;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;}
+.sb-ft{padding:9px 14px;border-top:1px solid rgba(255,255,255,.07);font-size:9px;color:rgba(255,255,255,.18);text-align:center;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.topbar{height:52px;background:#fff;border-bottom:1px solid #d5dfe8;padding:0 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.top-t{font-size:16px;font-weight:800;color:#0f1f30;}
+.top-s{font-size:10.5px;color:#8fa3b8;background:#eef2f7;padding:2px 9px;border-radius:20px;border:1px solid #d5dfe8;margin-left:10px;}
+.top-r{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.content{flex:1;overflow-y:auto;padding:18px 20px;}
+.btn{padding:7px 14px;border-radius:7px;border:none;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;transition:filter .12s;}
+.btn-blue{background:#006B68;color:#fff;}.btn-blue:hover{background:#005452;}
+.btn-green{background:#005452;color:#fff;}.btn-green:hover{background:#003533;}
+.btn-gold{background:#FFC62F;color:#004442;}.btn-gold:hover{filter:brightness(.88);}
+.btn-gray{background:#e0e7ef;color:#445566;border:1.5px solid #d5dfe8;}.btn-gray:hover{background:#cdd6e4;}
+.btn-red{background:#c0392b;color:#fff;}.btn-red:hover{filter:brightness(.88);}
+.btn-sm{padding:5px 10px;font-size:11.5px;}
+.btn-xs{padding:3px 7px;font-size:11px;}
+.card{background:#fff;border-radius:12px;border:1px solid #d5dfe8;box-shadow:0 1px 6px rgba(15,31,48,.07);margin-bottom:14px;}
+.card-h{padding:12px 16px;border-bottom:1px solid #d5dfe8;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-t{font-size:13.5px;font-weight:700;color:#0f1f30;}
+.card-b{padding:16px;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.stat{background:#fff;border-radius:12px;padding:14px 16px;border:1px solid #d5dfe8;box-shadow:0 1px 6px rgba(15,31,48,.07);}
+.stat-v{font-size:28px;font-weight:800;line-height:1;}
+.stat-l{font-size:11px;color:#445566;margin-top:4px;}
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f4f7fb;padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#8fa3b8;border-bottom:1px solid #d5dfe8;white-space:nowrap;}
+td{padding:8px 11px;border-bottom:1px solid #edf1f7;font-size:12.5px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+.row-c{cursor:pointer;}.row-c:hover td{background:#eef9f7;}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+.bk{background:#d6f3f0;color:#005452;}
+.bb{background:#fff3cc;color:#8a5e00;}
+.vt{background:#d6f3f0;color:#005452;padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;}
+.ph{background:#fff3cc;color:#8a5e00;padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:700;white-space:nowrap;display:inline-block;}
+.fbar{display:flex;gap:7px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+.srch{position:relative;flex:1;min-width:180px;}
+.srch input{width:100%;padding:7px 10px 7px 30px;border:1.5px solid #d5dfe8;border-radius:7px;font-family:inherit;font-size:12.5px;background:#fff;outline:none;color:#0f1f30;}
+.srch input:focus{border-color:#006B68;}
+.srch-ic{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
+.fsel{padding:7px 9px;border:1.5px solid #d5dfe8;border-radius:7px;font-family:inherit;font-size:12.5px;background:#fff;color:#0f1f30;cursor:pointer;outline:none;}
+.fg{margin-bottom:12px;}
+.fl{display:block;font-size:10.5px;font-weight:700;color:#445566;margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px;}
+.fc{width:100%;padding:8px 10px;border:1.5px solid #d5dfe8;border-radius:7px;font-family:inherit;font-size:13px;color:#0f1f30;background:#fff;outline:none;}
+.fc:focus{border-color:#006B68;}
+textarea.fc{resize:vertical;min-height:60px;}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.req{color:#c0392b;}
+.ov{position:fixed;inset:0;background:rgba(5,15,30,.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .18s;}
+.ov.show{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:900px;max-height:92vh;overflow-y:auto;box-shadow:0 8px 40px rgba(10,20,40,.22);transform:translateY(12px);transition:transform .18s;}
+.ov.show .modal{transform:translateY(0);}
+.mhd{padding:16px 20px 12px;border-bottom:1px solid #d5dfe8;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:5;}
+.mtt{font-size:14.5px;font-weight:800;}
+.mxb{width:28px;height:28px;border:none;background:#eef2f7;border-radius:50%;cursor:pointer;font-size:17px;color:#445566;display:flex;align-items:center;justify-content:center;}
+.mxb:hover{background:#d5dfe8;}
+.mbd{padding:16px 20px;}
+.mft{padding:11px 20px;border-top:1px solid #d5dfe8;display:flex;justify-content:flex-end;gap:7px;position:sticky;bottom:0;background:#fff;}
+.sec{display:none;}.sec.show{display:block;}
+.alert{padding:9px 13px;border-radius:7px;margin-bottom:12px;font-size:12.5px;}
+.a-ok{background:#e0f5f3;color:#005452;border:1px solid #a5d6be;}
+.a-err{background:#fdecea;color:#c0392b;border:1px solid #f5b7b1;}
+.a-inf{background:#d6f3f0;color:#005452;border:1px solid #6bd0c8;}
+.empty{text-align:center;padding:32px;color:#8fa3b8;}
+.pag{display:flex;align-items:center;gap:4px;padding:8px 12px;justify-content:flex-end;flex-wrap:wrap;}
+.pb{min-width:28px;height:28px;border:1.5px solid #d5dfe8;border-radius:6px;background:#fff;cursor:pointer;font-size:11.5px;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;padding:0 6px;}
+.pb:hover{background:#eef2f7;}.pb.on{background:#006B68;color:#fff;border-color:#006B68;}
+/* WIZARD */
+.steps{display:flex;align-items:center;margin-bottom:20px;}
+.wst{display:flex;align-items:center;gap:7px;flex:1;}
+.wsn{width:28px;height:28px;border-radius:50%;border:2px solid #d5dfe8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#8fa3b8;background:#fff;flex-shrink:0;}
+.wst.done .wsn{background:#005452;border-color:#005452;color:#fff;}
+.wst.cur .wsn{background:#006B68;border-color:#006B68;color:#fff;}
+.wsl{font-size:11.5px;font-weight:600;color:#8fa3b8;}
+.wst.done .wsl,.wst.cur .wsl{color:#0f1f30;}
+.wln{flex:1;height:2px;background:#d5dfe8;margin:0 8px;}
+.wln.done{background:#006B68;}
+/* BOCO */
+.boco-g{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.boco{border:2px solid #d5dfe8;border-radius:12px;padding:18px;cursor:pointer;position:relative;background:#fff;}
+.boco:hover{border-color:#006B68;}
+.boco.sk{border-color:#006B68;background:#e0f5f3;}
+.boco.sb{border-color:#005452;background:#d6f0ec;}
+.boco-ic{font-size:32px;margin-bottom:8px;}
+.boco-nm{font-size:14px;font-weight:800;}
+.boco-sb{font-size:11.5px;color:#445566;margin-top:3px;}
+.boco-ck{position:absolute;top:12px;right:12px;width:22px;height:22px;border-radius:50%;border:2px solid #d5dfe8;background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.boco.sk .boco-ck{background:#006B68;border-color:#006B68;color:#fff;}
+.boco.sb .boco-ck{background:#005452;border-color:#005452;color:#fff;}
+/* TARGET PICK */
+.tp{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #edf1f7;cursor:pointer;}
+.tp:hover{background:#e8f7f5;}.tp.sel{background:#c5ece8;}
+.tp-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;}
+.tp-nm{font-size:13px;font-weight:700;color:#0f1f30;}
+.tp-sb{font-size:11px;color:#8fa3b8;margin-top:1px;}
+/* SUM BOX */
+.sumbox{background:linear-gradient(135deg,#003533,#006B68);border-radius:12px;padding:16px;color:#fff;margin-bottom:14px;}
+.sumbox h4{font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:10px;}
+.sum-r{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.sum-r:last-child{border:none;}
+.sum-l{font-size:11.5px;color:rgba(255,255,255,.6);}
+.sum-v{font-size:12px;font-weight:700;color:#fff;}
+/* ASSIGN TABLE */
+.at{width:100%;border-collapse:collapse;}
+.at th{background:#f4f7fb;padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;color:#8fa3b8;border-bottom:1px solid #d5dfe8;white-space:nowrap;}
+.at td{padding:5px 8px;border-bottom:1px solid #f0f4f8;vertical-align:middle;}
+.at tr:last-child td{border-bottom:none;}
+.vi{width:130px;padding:5px 8px;border:1.5px solid #d5dfe8;border-radius:6px;font-family:inherit;font-size:12.5px;text-align:right;outline:none;background:#fff;}
+.vi:focus{border-color:#006B68;background:#e8f7f5;}
+.ui{width:90px;padding:5px 7px;border:1.5px solid #d5dfe8;border-radius:6px;font-family:inherit;font-size:12px;outline:none;background:#fff;}
+.ni{width:100%;padding:4px 7px;border:1.5px solid #d5dfe8;border-radius:6px;font-family:inherit;font-size:11.5px;outline:none;background:#fff;}
+.bi{width:110px;padding:5px 8px;border:1.5px solid #d5dfe8;border-radius:6px;font-family:inherit;font-size:12.5px;text-align:right;outline:none;background:#fff;}
+.bi:focus{border-color:#006B68;background:#e8f7f5;}
+.ti{width:110px;padding:5px 8px;border:1.5px solid #BDE3DC;border-radius:6px;font-family:inherit;font-size:12.5px;text-align:right;outline:none;background:#e0f5f3;color:#005452;font-weight:700;pointer-events:none;}
+.iz{border:2px dashed #d5dfe8;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;background:#eef2f7;}
+.iz:hover{border-color:#006B68;background:#e0f5f3;}
+/* AUTH */
+.lw{position:fixed;inset:0;background:linear-gradient(135deg,#003533 0%,#006B68 60%,#004442 100%);display:flex;align-items:center;justify-content:center;z-index:9999;}
+.lb{background:#fff;border-radius:18px;padding:38px 42px;width:100%;max-width:390px;box-shadow:0 24px 64px rgba(0,0,0,.45);}
+.lb-logo{text-align:center;margin-bottom:26px;}
+.lb-logo .t1{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#8fa3b8;font-weight:700;}
+.lb-logo .t2{font-size:24px;font-weight:900;color:#0f1f30;margin-top:5px;line-height:1.2;}
+.lb-logo .t2 b{color:#006B68;}
+.lb-err{background:#fdecea;color:#c0392b;border:1.5px solid #f5b7b1;border-radius:8px;padding:9px 13px;font-size:12.5px;margin-bottom:13px;display:none;}
+.role-tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:12px;font-size:10.5px;font-weight:700;letter-spacing:.3px;}
+.rt-admin{background:#fdecea;color:#c0392b;}
+.rt-truong{background:#d6f3f0;color:#005452;}
+.rt-cb{background:#e8f7f5;color:#006B68;}
+.ab{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:10px;font-size:10.5px;font-weight:700;}
+.ab-ok{background:#d6f3f0;color:#005452;}
+.ab-pend{background:#fff8e0;color:#8a5e00;}
+.btn-gold{background:#FFC62F;color:#004442;border:none;}
+.btn-gold:hover{background:#e6b000;}
+.btn-xs{padding:3px 7px;font-size:11px;}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, updateDoc, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ═══════════════════════════════════════════════════
+// FIREBASE CONFIG
+// ═══════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyCkb7nJd96avj5fY1rPWnED2cUd46mE6Hg",
+  authDomain: "nhap-ke-hoach.firebaseapp.com",
+  projectId: "nhap-ke-hoach",
+  storageBucket: "nhap-ke-hoach.firebasestorage.app",
+  messagingSenderId: "867422287300",
+  appId: "1:867422287300:web:c2128f6f460e5925606091",
+  measurementId: "G-11C4LZHNFV"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ═══════════════════════════════════════════════════
+// FIRESTORE HELPERS
+// ═══════════════════════════════════════════════════
+async function fsGet(docPath) {
+  try {
+    const snap = await getDoc(doc(db, ...docPath.split('/')));
+    return snap.exists() ? snap.data() : null;
+  } catch(e) { console.error('fsGet', e); return null; }
+}
+async function fsSet(docPath, data) {
+  try {
+    await setDoc(doc(db, ...docPath.split('/')), data);
+  } catch(e) { console.error('fsSet', e); }
+}
+
+// ═══════════════════════════════════════════════════
+// SAVE FUNCTIONS → Firestore
+// ═══════════════════════════════════════════════════
+// Assign async save functions (called by regular script via stubs above)
+window._sCB    = async () => { await fsSet('kpi_app/cb',    { data: window.CB }); };
+window._sVT    = async () => { await fsSet('kpi_app/vt',    { data: window.VT }); };
+window._sBSC   = async () => { await fsSet('kpi_app/bsc',   { data: window.BSC }); };
+window._sPB    = async () => { await fsSet('kpi_app/pb',    { data: window.PB }); };
+window._sUsers = async () => { await fsSet('kpi_app/users', { data: window.USERS }); };
+window._sPG    = async () => { await fsSet('kpi_app/pg',    { data: window.PG }); };
+
+// ═══════════════════════════════════════════════════
+// REALTIME LISTENER — tự động cập nhật khi máy khác ghi
+// ═══════════════════════════════════════════════════
+function startRealtimeSync() {
+  const docs = ['cb','vt','bsc','pb','pg','users'];
+  docs.forEach(key => {
+    onSnapshot(doc(db, 'kpi_app', key), (snap) => {
+      if (!snap.exists()) return;
+      const val = snap.data().data;
+      if (key === 'cb')    { window.CB    = val; }
+      if (key === 'vt')    { window.VT    = val; }
+      if (key === 'bsc')   { window.BSC   = val; }
+      if (key === 'pb')    { window.PB    = val; }
+      if (key === 'users') { window.USERS = val; }
+      if (key === 'pg')    { window.PG    = val; }
+      // Re-render nếu app đang hiển thị
+      if (document.getElementById('mainApp').style.display !== 'none') {
+        updBadges();
+        const activeSec = document.querySelector('.sec.show');
+        if (activeSec) {
+          const sid = activeSec.id.replace('sec-','');
+          ({dash:renderDash, kpi:renderKPI, bsc:renderBSC, ds:renderDS, cb:renderCB, pb:renderPB, users:renderUsers, exp:renderExpPreview}[sid]||function(){})();
+        }
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// INIT — Load dữ liệu từ Firestore rồi khởi động app
+// ═══════════════════════════════════════════════════
+async function initApp() {
+  showLoading('Đang kết nối Firebase...');
+  try {
+    const [cbDoc, vtDoc, bscDoc, pbDoc, pgDoc, usersDoc] = await Promise.all([
+      fsGet('kpi_app/cb'), fsGet('kpi_app/vt'), fsGet('kpi_app/bsc'),
+      fsGet('kpi_app/pb'), fsGet('kpi_app/pg'), fsGet('kpi_app/users')
+    ]);
+
+    // Nếu chưa có dữ liệu → ghi default lên Firestore
+    window.CB    = cbDoc    ? cbDoc.data    : JSON.parse(JSON.stringify(D_CB));
+    window.VT    = vtDoc    ? vtDoc.data    : JSON.parse(JSON.stringify(D_VT));
+    window.BSC   = bscDoc   ? bscDoc.data   : JSON.parse(JSON.stringify(D_BSC));
+    window.PB    = pbDoc    ? pbDoc.data    : JSON.parse(JSON.stringify(D_PB));
+    window.PG    = pgDoc    ? pgDoc.data    : [];
+    window.USERS = usersDoc ? usersDoc.data : JSON.parse(JSON.stringify(D_USERS));
+
+    if (!cbDoc)    await window.sCB();
+    if (!vtDoc)    await window.sVT();
+    if (!bscDoc)   await window.sBSC();
+    if (!pbDoc)    await window.sPB();
+    if (!pgDoc)    await window.sPG();
+    if (!usersDoc) await window.sUsers();
+
+    hideLoading();
+    startRealtimeSync();
+    document.getElementById('todayTxt').textContent = new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  } catch(e) {
+    showLoading('❌ Không kết nối được Firebase! Kiểm tra mạng và thử lại.', true);
+    console.error(e);
+  }
+}
+
+function showLoading(msg, isError) {
+  let el = document.getElementById('fbLoading');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'fbLoading';
+    el.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#003533,#006B68);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;color:#fff;font-family:inherit';
+    el.innerHTML = `
+      <div style="font-size:32px;font-weight:900;letter-spacing:-1px;color:#FFC62F;margin-bottom:4px">BIDV</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:8px">Phân Giao Chỉ Tiêu KPI & BSC</div>
+      <div id="fbLoadMsg" style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:20px"></div>
+      <div id="fbSpinner" style="width:36px;height:36px;border:3px solid rgba(255,255,255,.2);border-top-color:#FFC62F;border-radius:50%;animation:spin .8s linear infinite"></div>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+    document.body.appendChild(el);
+  }
+  document.getElementById('fbLoadMsg').textContent = msg;
+  if (isError) document.getElementById('fbSpinner').style.display = 'none';
+}
+function hideLoading() {
+  const el = document.getElementById('fbLoading');
+  if (el) el.remove();
+}
+
+document.addEventListener('DOMContentLoaded', () => { initApp(); });
+</script>
+</head>
+<body>
+<!-- LOGIN -->
+<div class="lw" id="loginWrap">
+  <div class="lb">
+    <div class="lb-logo">
+      <div class="t1">BIDV · Chi nhánh Cẩm Phả</div>
+      <div class="t2"><span style="color:#006B68;font-weight:900;letter-spacing:-1px">BIDV</span> · Phân Giao <b>Chỉ Tiêu</b><br><span style="font-size:13px;color:#8fa3b8;font-weight:500">KPI &amp; BSC</span></div>
+    </div>
+    <div class="lb-err" id="loginErr">❌ Tên đăng nhập hoặc mật khẩu không đúng!</div>
+    <div class="fg"><label class="fl">Tên đăng nhập</label>
+      <input class="fc" id="liU" placeholder="username..." autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('liP').focus()">
+    </div>
+    <div class="fg"><label class="fl">Mật khẩu</label>
+      <input class="fc" type="password" id="liP" placeholder="mật khẩu..." autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-blue" style="width:100%;margin-top:6px;padding:11px;font-size:13.5px" onclick="doLogin()">🔐 Đăng nhập</button>
+    <div style="margin-top:14px;text-align:center;font-size:10.5px;color:#c0ccda">v6.0 · BIDV · Firebase Realtime</div>
+  </div>
+</div>
+
+<div class="app" id="mainApp" style="display:none">
+
+<!-- SIDEBAR -->
+<div class="sb">
+  <div class="sb-logo">
+    <div class="sb-brand">BIDV · Chi nhánh Cẩm Phả</div>
+    <div class="sb-name">Phân Giao<br><b>Chỉ Tiêu</b></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Tổng quan</div>
+    <div class="sb-a on" data-s="dash" onclick="go(this)"><span class="sb-ic">📊</span>Dashboard</div>
+    <div class="sb-sec" id="snBoCT">Bộ chỉ tiêu</div>
+    <div class="sb-a" data-s="kpi" onclick="go(this)"><span class="sb-ic">🎯</span>Chỉ tiêu KPI<span class="sb-bx" id="bKPI">0</span></div>
+    <div class="sb-a" data-s="bsc" onclick="go(this)"><span class="sb-ic">📐</span>Chỉ tiêu BSC<span class="sb-bx" id="bBSC">0</span></div>
+    <div class="sb-sec">Phân giao</div>
+    <div class="sb-a" data-s="tao" onclick="go(this)"><span class="sb-ic">📨</span>Tạo phân giao</div>
+    <div class="sb-a" data-s="ds" onclick="go(this)"><span class="sb-ic">📋</span>Danh sách PG<span class="sb-bx" id="bPG">0</span></div>
+    <div class="sb-sec" id="snQL">Quản lý</div>
+    <div class="sb-a" data-s="pb" onclick="go(this)"><span class="sb-ic">🏢</span>Phòng ban<span class="sb-bx" id="bPB">0</span></div>
+    <div class="sb-a" data-s="cb" onclick="go(this)"><span class="sb-ic">👥</span>Cán bộ</div>
+    <div class="sb-a" data-s="users" onclick="go(this)"><span class="sb-ic">🔑</span>Quản lý User</div>
+    <div class="sb-a" data-s="imp" onclick="go(this)"><span class="sb-ic">📥</span>Import Excel</div>
+    <div class="sb-a" data-s="exp" onclick="go(this)"><span class="sb-ic">📤</span>Xuất dữ liệu</div>
+  </nav>
+  <div class="sb-ft" style="padding:10px 14px">
+    <div style="font-size:9.5px;color:rgba(255,255,255,.28);margin-bottom:5px">Đã đăng nhập</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#fff" id="sbUN">—</div>
+        <div id="sbRole" style="margin-top:3px"></div>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button onclick="openChangePass()" title="Đổi mật khẩu" style="background:rgba(255,198,47,.18);border:1px solid rgba(255,198,47,.3);color:#FFC62F;border-radius:7px;padding:4px 9px;font-size:13px;cursor:pointer">🔑</button>
+        <button onclick="doLogout()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.65);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer">Thoát</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center">
+      <div class="top-t" id="topT">Dashboard</div>
+      <div class="top-s" id="topS">Tổng quan</div>
+    </div>
+    <div class="top-r">
+      <span style="font-size:11px;color:#8fa3b8" id="todayTxt"></span>
+      <span id="fbStatus" style="font-size:11px;padding:2px 9px;border-radius:10px;background:#d6f3f0;color:#005452;font-weight:700">🔥 Firebase</span>
+      <button class="btn btn-blue btn-sm" id="topNewPG" onclick="go(document.querySelector('[data-s=tao]'))">📨 Phân giao mới</button>
+    </div>
+  </div>
+  <div class="content">
+
+  <!-- DASHBOARD -->
+  <div class="sec show" id="sec-dash">
+    <div class="stats" id="statRow"></div>
+    <!-- DASH TABS -->
+    <div style="display:flex;gap:0;margin-bottom:0;border-bottom:2px solid #d5dfe8">
+      <button id="dashTab1" onclick="switchDashTab(1)" style="padding:7px 16px;font-size:12.5px;font-weight:700;border:none;background:none;cursor:pointer;color:#006B68;border-bottom:3px solid #006B68;margin-bottom:-2px">📋 Phân giao gần đây</button>
+      <button id="dashTab2" onclick="switchDashTab(2)" style="padding:7px 16px;font-size:12.5px;font-weight:700;border:none;background:none;cursor:pointer;color:#8fa3b8;border-bottom:3px solid transparent;margin-bottom:-2px">⚠️ Chưa phân giao <span id="chuaPGBadge" style="background:#fdecea;color:#c0392b;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px">0</span></button>
+    </div>
+
+    <!-- TAB 1: Phân giao gần đây -->
+    <div id="dashTabC1">
+      <div style="display:grid;grid-template-columns:3fr 1fr;gap:14px;margin-top:14px">
+        <div class="card">
+          <div class="card-h"><div class="card-t">📋 Phân giao gần đây</div>
+            <button class="btn btn-gray btn-sm" onclick="go(document.querySelector('[data-s=ds]'))">Xem tất cả →</button>
+          </div>
+          <div class="tw"><table>
+            <thead><tr><th>Cán bộ / Phòng</th><th>Bộ CT</th><th>Vị trí / Mã BCT</th><th>Số CT</th><th>Đã nhập KH</th><th>Người giao</th><th>Kỳ</th><th>Ngày</th><th></th></tr></thead>
+            <tbody id="pgRecent"></tbody>
+          </table></div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-h"><div class="card-t">KPI theo vị trí</div></div>
+            <div class="card-b" id="vtStat" style="font-size:12px;padding:10px 14px"></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><div class="card-t">BSC theo mã BCT</div></div>
+            <div class="card-b" id="bscStat" style="font-size:12px;padding:10px 14px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Chưa phân giao -->
+    <div id="dashTabC2" style="display:none;margin-top:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <!-- Cán bộ chưa có phân giao KPI -->
+        <div class="card">
+          <div class="card-h">
+            <div class="card-t">🎯 Cán bộ chưa có phân giao KPI</div>
+            <span id="chuaKPICnt" style="font-size:11px;color:#8fa3b8"></span>
+          </div>
+          <div class="fbar" style="padding:10px 16px 0;margin-bottom:0">
+            <div class="srch" style="flex:1"><span class="srch-ic">🔍</span><input id="chuaKPISQ" placeholder="Tìm cán bộ..." oninput="renderChuaPG()"></div>
+            <select class="fsel" id="chuaKPIPh" onchange="renderChuaPG()"><option value="">Tất cả phòng</option></select>
+          </div>
+          <div class="tw" style="max-height:420px;overflow-y:auto"><table>
+            <thead><tr><th>#</th><th>Cán bộ</th><th>Phòng</th><th>Vị trí</th><th>Thao tác</th></tr></thead>
+            <tbody id="chuaKPITb"></tbody>
+          </table></div>
+        </div>
+        <!-- Phòng ban chưa có phân giao BSC -->
+        <div class="card">
+          <div class="card-h">
+            <div class="card-t">📐 Phòng ban chưa có phân giao BSC</div>
+            <span id="chuaBSCCnt" style="font-size:11px;color:#8fa3b8"></span>
+          </div>
+          <div class="tw" style="max-height:200px;overflow-y:auto;margin-bottom:0"><table>
+            <thead><tr><th>#</th><th>Phòng / PGD</th><th>Mã BCT</th><th>Thao tác</th></tr></thead>
+            <tbody id="chuaBSCTb"></tbody>
+          </table></div>
+          <!-- Thống kê theo kỳ -->
+          <div class="card-h" style="margin-top:8px;border-top:1px solid #d5dfe8">
+            <div class="card-t">📊 Thống kê theo kỳ</div>
+            <select class="fsel" id="chuaKyF" onchange="renderChuaPG()" style="font-size:11.5px;padding:4px 7px"></select>
+          </div>
+          <div class="card-b" id="kyStatC" style="padding:10px 14px;font-size:12px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHỈ TIÊU KPI -->
+  <div class="sec" id="sec-kpi">
+    <div class="fbar">
+      <div class="srch"><span class="srch-ic">🔍</span><input id="kpiSQ" placeholder="Tìm chỉ tiêu..." oninput="renderKPI()"></div>
+      <select class="fsel" id="kpiVTF" onchange="renderKPI()"><option value="">Tất cả vị trí</option></select>
+      <button class="btn btn-blue btn-sm" onclick="openAddVT()">➕ Thêm vị trí</button>
+      <button class="btn btn-green btn-sm" onclick="openAddKPI()">➕ Thêm chỉ tiêu</button>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">🎯 Chỉ tiêu KPI theo Vị trí</div><span id="kpiCnt" style="font-size:11px;color:#8fa3b8"></span></div>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th>Vị trí</th><th>Tên chỉ tiêu</th><th style="width:90px">Thao tác</th></tr></thead>
+        <tbody id="kpiTb"></tbody>
+      </table></div>
+      <div class="pag" id="kpiPag"></div>
+    </div>
+  </div>
+
+  <!-- CHỈ TIÊU BSC -->
+  <div class="sec" id="sec-bsc">
+    <div class="fbar">
+      <div class="srch"><span class="srch-ic">🔍</span><input id="bscSQ" placeholder="Tìm chỉ tiêu..." oninput="renderBSC()"></div>
+      <select class="fsel" id="bscMF" onchange="renderBSC()"><option value="">Tất cả mã BCT</option></select>
+      <button class="btn btn-blue btn-sm" onclick="openAddMaBCT()">➕ Thêm mã BCT</button>
+      <button class="btn btn-green btn-sm" onclick="openAddBSC()">➕ Thêm chỉ tiêu</button>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">📐 Chỉ tiêu BSC theo Mã BCT</div><span id="bscCnt" style="font-size:11px;color:#8fa3b8"></span></div>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th>Mã BCT</th><th>Tên chỉ tiêu</th><th style="width:90px">Thao tác</th></tr></thead>
+        <tbody id="bscTb"></tbody>
+      </table></div>
+      <div class="pag" id="bscPag"></div>
+    </div>
+  </div>
+
+  <!-- TẠO PHÂN GIAO -->
+  <div class="sec" id="sec-tao">
+    <!-- TAB HEADER -->
+    <div style="display:flex;gap:0;margin-bottom:16px;border-bottom:2px solid #d5dfe8">
+      <button id="taoTab1" class="btn btn-blue btn-sm" style="border-radius:8px 8px 0 0;border-bottom:2px solid #006B68;margin-bottom:-2px" onclick="switchTaoTab(1)">✍️ Tạo thủ công</button>
+      <button id="taoTab2" class="btn btn-gray btn-sm" style="border-radius:8px 8px 0 0;border-bottom:none;margin-left:6px" onclick="switchTaoTab(2)">📥 Import từ Excel</button>
+    </div>
+
+    <!-- TAB 1: WIZARD -->
+    <div id="taoTabC1">
+    <div class="steps">
+      <div class="wst cur" id="ws1"><div class="wsn">1</div><div class="wsl">Chọn bộ CT</div></div>
+      <div class="wln" id="wl1"></div>
+      <div class="wst" id="ws2"><div class="wsn">2</div><div class="wsl">Chọn cán bộ / phòng</div></div>
+      <div class="wln" id="wl2"></div>
+      <div class="wst" id="ws3"><div class="wsn">3</div><div class="wsl">Nhập số kế hoạch</div></div>
+      <div class="wln" id="wl3"></div>
+      <div class="wst" id="ws4"><div class="wsn">4</div><div class="wsl">Xác nhận & lưu</div></div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="wz1">
+      <div class="card">
+        <div class="card-h"><div class="card-t">Bước 1 · Chọn bộ chỉ tiêu</div></div>
+        <div class="card-b">
+          <div class="boco-g">
+            <div class="boco" id="boK" onclick="pickBC('KPI')">
+              <div class="boco-ck" id="ckK"></div>
+              <div class="boco-ic">🎯</div>
+              <div class="boco-nm">Bộ chỉ tiêu KPI</div>
+              <div class="boco-sb">Giao cho cán bộ AM theo vị trí</div>
+              <div style="margin-top:8px"><span class="badge bk" id="kCS">0 vị trí</span></div>
+            </div>
+            <div class="boco" id="boB" onclick="pickBC('BSC')">
+              <div class="boco-ck" id="ckB"></div>
+              <div class="boco-ic">📐</div>
+              <div class="boco-nm">Bộ chỉ tiêu BSC</div>
+              <div class="boco-sb">Giao cho phòng / PGD theo mã BCT</div>
+              <div style="margin-top:8px"><span class="badge bb" id="bCS">0 mã BCT</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn btn-blue" id="btnW1" onclick="wzNext(1)" disabled>Tiếp theo →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="wz2" style="display:none">
+      <div class="card">
+        <div class="card-h">
+          <div class="card-t" id="wz2T">Bước 2 · Chọn cán bộ</div>
+          <div class="srch" style="width:230px"><span class="srch-ic">🔍</span><input id="wzSQ" placeholder="Tìm..." oninput="renderTargets()"></div>
+        </div>
+        <div style="max-height:440px;overflow-y:auto" id="targetList"></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-gray" onclick="wzBack(2)">← Quay lại</button>
+        <button class="btn btn-blue" id="btnW2" onclick="wzNext(2)" disabled>Tiếp theo →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: nhập số KH -->
+    <div id="wz3" style="display:none">
+      <div class="card">
+        <div class="card-h">
+          <div>
+            <div class="card-t" id="wz3T">Bước 3 · Nhập số kế hoạch từng chỉ tiêu</div>
+            <div style="font-size:11.5px;color:#8fa3b8;margin-top:2px" id="wz3Sub"></div>
+          </div>
+          <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:11.5px;color:#445566">Đơn vị mặc định:</span>
+            <input type="text" id="defUnit" placeholder="vd: Triệu đồng" style="width:130px;padding:5px 8px;border:1.5px solid #d5dfe8;border-radius:6px;font-size:12px;font-family:inherit;outline:none">
+            <button class="btn btn-gray btn-sm" onclick="applyUnit()">Áp dụng</button>
+            <button class="btn btn-gray btn-sm" onclick="clearVals()">Xóa trắng</button>
+          </div>
+        </div>
+        <div style="overflow-y:auto;max-height:480px">
+          <table class="at">
+            <thead id="wz3Head"><tr>
+              <th style="width:36px">#</th>
+              <th>Tên chỉ tiêu</th>
+              <th style="width:150px;text-align:right">Số kế hoạch</th>
+              <th style="width:110px">Đơn vị</th>
+              <th style="min-width:120px">Ghi chú</th>
+            </tr></thead>
+            <tbody id="wz3Tb"></tbody>
+          </table>
+        </div>
+        <div style="padding:8px 14px;background:#f9fbfc;border-top:1px solid #edf1f7;font-size:11.5px;color:#445566">
+          💡 Nhập số kế hoạch cụ thể cho từng chỉ tiêu. Bỏ trống nếu chưa có giá trị.
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-gray" onclick="wzBack(3)">← Quay lại</button>
+        <button class="btn btn-blue" onclick="wzNext(3)">Xem lại & Xác nhận →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: xác nhận -->
+    <div id="wz4" style="display:none">
+      <div style="display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:12px">
+        <div class="card">
+          <div class="card-h"><div class="card-t">📑 Xem lại trước khi lưu</div><span id="wz4N" style="font-size:11px;color:#8fa3b8"></span></div>
+          <div class="tw" style="max-height:400px;overflow-y:auto"><table>
+            <thead><tr><th>#</th><th>Tên chỉ tiêu</th><th id="wz4HeadR" style="text-align:right">Số KH</th><th>Đơn vị</th><th>Ghi chú</th></tr></thead>
+            <tbody id="wz4Tb"></tbody>
+          </table></div>
+        </div>
+        <div>
+          <div class="sumbox"><h4>Tóm tắt phân giao</h4><div id="wzSumC"></div></div>
+          <div class="card"><div class="card-b">
+            <div class="fg"><label class="fl">Người giao <span class="req">*</span></label>
+              <input type="text" class="fc" id="pgNG" placeholder="Họ tên người giao...">
+            </div>
+            <div class="fg"><label class="fl">Kỳ đánh giá</label>
+              <select class="fc" id="pgKy">
+                <option value="">-- Chọn kỳ --</option>
+                <option>Quý 1</option>
+                <option>Quý 2</option>
+                <option>Quý 3</option>
+                <option>Cả Năm</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Hạn hoàn thành</label>
+              <input type="date" class="fc" id="pgHan">
+            </div>
+            <div class="fg"><label class="fl">Ghi chú chung</label>
+              <textarea class="fc" id="pgGC" rows="2" placeholder="Lưu ý, hướng dẫn..."></textarea>
+            </div>
+          </div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-gray" onclick="wzBack(4)">← Sửa lại</button>
+        <button class="btn btn-green" onclick="savePG()">✅ Xác nhận phân giao</button>
+      </div>
+    </div>
+    </div><!-- end taoTabC1 -->
+
+    <!-- TAB 2: IMPORT PHÂN GIAO -->
+    <div id="taoTabC2" style="display:none">
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">📥 Import phân giao từ Excel</div>
+        <button class="btn btn-gold btn-sm" id="btnDlSamplePG" onclick="downloadSamplePG()">⬇ Tải file mẫu (.xlsx)</button>
+      </div>
+      <div class="card-b">
+        <div id="impPGAlert"></div>
+        <div style="background:#fef8e7;border:1px solid #f0d080;border-radius:10px;padding:13px;margin-bottom:14px">
+          <div style="font-weight:700;font-size:12px;color:#8a5e00;margin-bottom:8px">📋 Cấu trúc file — mỗi hàng = 1 chỉ tiêu, các cột đầu lặp lại cho cùng 1 phân giao</div>
+          <div style="overflow-x:auto">
+          <table style="width:100%;font-size:11.5px;border-collapse:collapse;min-width:600px">
+            <tr style="background:#f7e9b0"><td style="padding:3px 7px;font-weight:700">Cột</td><td style="padding:3px 7px;font-weight:700">Mô tả</td><td style="padding:3px 7px;font-weight:700">Giá trị ví dụ</td><td style="padding:3px 7px;font-weight:700">Bắt buộc</td></tr>
+            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">A · BO_CT</td><td style="padding:3px 7px">Loại bộ chỉ tiêu</td><td style="padding:3px 7px;color:#445566">KPI hoặc BSC</td><td style="padding:3px 7px;color:#c0392b">✔</td></tr>
+            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">B · CAN_BO_PHONG</td><td style="padding:3px 7px">Tên cán bộ (KPI) hoặc Phòng (BSC)</td><td style="padding:3px 7px;color:#445566">Nguyễn Văn A / CẨM BÌNH</td><td style="padding:3px 7px;color:#c0392b">✔</td></tr>
+            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">C · VI_TRI_MA_BCT</td><td style="padding:3px 7px">Vị trí (KPI) hoặc Mã BCT (BSC)</td><td style="padding:3px 7px;color:#445566">QLKH / PGD</td><td style="padding:3px 7px;color:#c0392b">✔</td></tr>
+            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">D · KY</td><td style="padding:3px 7px">Kỳ đánh giá</td><td style="padding:3px 7px;color:#445566">Q1/2025</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
+            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">E · NGUOI_GIAO</td><td style="padding:3px 7px">Người giao</td><td style="padding:3px 7px;color:#445566">Trần Văn B</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
+            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">F · HAN</td><td style="padding:3px 7px">Hạn hoàn thành</td><td style="padding:3px 7px;color:#445566">31/03/2025</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
+            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">G · GHI_CHU</td><td style="padding:3px 7px">Ghi chú chung</td><td style="padding:3px 7px;color:#445566">(để trống được)</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
+            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">H · CHI_TIEU</td><td style="padding:3px 7px">Tên chỉ tiêu</td><td style="padding:3px 7px;color:#445566">Dư nợ cuối kỳ</td><td style="padding:3px 7px;color:#c0392b">✔</td></tr>
+            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">I · SO_KH</td><td style="padding:3px 7px">Số kế hoạch</td><td style="padding:3px 7px;color:#445566">1500000</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
+            <tr style="background:#fffbee"><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">J · DON_VI</td><td style="padding:3px 7px">Đơn vị tính</td><td style="padding:3px 7px;color:#445566">Tr.đ</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
+            <tr><td style="padding:3px 7px;font-family:monospace;color:#8a5e00">K · GHI_CHU_CT</td><td style="padding:3px 7px">Ghi chú riêng của chỉ tiêu</td><td style="padding:3px 7px;color:#445566">(để trống được)</td><td style="padding:3px 7px;color:#8fa3b8">—</td></tr>
+          </table>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:#8a5e00;line-height:1.7">
+            ⚠ Các hàng cùng <b>BO_CT + CAN_BO_PHONG + VI_TRI_MA_BCT + KY</b> sẽ được gom thành <b>1 phân giao</b>.<br>
+            ⚠ Hàng thiếu cột A, B, C hoặc H sẽ bị bỏ qua.
+          </div>
+        </div>
+        <div class="iz" onclick="document.getElementById('fImpPG').click()" ondragover="dze(event)" ondragleave="dze2(event)" ondrop="dropFPG(event)">
+          <div style="font-size:36px">📨</div>
+          <p style="font-weight:700;font-size:13px;margin:6px 0">Kéo thả hoặc nhấn để chọn file .xlsx</p>
+          <p style="font-size:11.5px;color:#8fa3b8">File có 1 sheet duy nhất, hàng đầu là tiêu đề</p>
+        </div>
+        <input type="file" id="fImpPG" accept=".xlsx" style="display:none" onchange="doImportPG(this)">
+      </div>
+    </div>
+    </div><!-- end taoTabC2 -->
+  </div>
+
+  <!-- DANH SÁCH PG -->
+  <div class="sec" id="sec-ds">
+    <div class="fbar">
+      <div class="srch"><span class="srch-ic">🔍</span><input id="dsSQ" placeholder="Tìm..." oninput="renderDS()"></div>
+      <select class="fsel" id="dsBo" onchange="renderDS()"><option value="">Tất cả</option><option>KPI</option><option>BSC</option></select>
+      <select class="fsel" id="dsKy" onchange="renderDS()"><option value="">Tất cả kỳ</option></select>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">📋 Danh sách phân giao</div>
+        <div style="display:flex;gap:7px;align-items:center">
+          <span id="dsCnt" style="font-size:11px;color:#8fa3b8"></span>
+          <button class="btn btn-green btn-sm" onclick="exportAllPG()">⬇ Xuất Excel tất cả</button>
+          <button class="btn btn-blue btn-sm" onclick="exportFilteredPG()">⬇ Xuất Excel (đang lọc)</button>
+        </div>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Bộ CT</th><th>Cán bộ / Phòng</th><th>Vị trí / Mã BCT</th><th>Kỳ</th><th>Số CT</th><th>Đã nhập KH</th><th>Người giao</th><th>Ngày lập</th><th>Trạng thái</th><th></th></tr></thead>
+        <tbody id="dsTb"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- CÁN BỘ -->
+  <div class="sec" id="sec-cb">
+    <div class="fbar">
+      <div class="srch"><span class="srch-ic">🔍</span><input id="cbSQ" placeholder="Tìm cán bộ..." oninput="renderCB()"></div>
+      <select class="fsel" id="cbVTF" onchange="renderCB()"><option value="">Tất cả vị trí</option></select>
+      <select class="fsel" id="cbPhF" onchange="renderCB()"><option value="">Tất cả phòng</option></select>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">👥 Danh sách cán bộ AM</div><span id="cbCnt" style="font-size:11px;color:#8fa3b8"></span></div>
+      <div class="tw"><table>
+        <thead><tr><th>Mã CB</th><th>Mã AM</th><th>Họ tên</th><th>Phòng</th><th>Vị trí</th><th>Trạng thái</th><th>Số CT (vị trí)</th><th>Lần PG</th></tr></thead>
+        <tbody id="cbTb"></tbody>
+      </table></div>
+      <div class="pag" id="cbPag"></div>
+    </div>
+  </div>
+
+  <!-- PHÒNG BAN -->
+  <div class="sec" id="sec-pb">
+    <div class="fbar">
+      <div class="srch"><span class="srch-ic">🔍</span><input id="pbSQ" placeholder="Tìm phòng ban..." oninput="renderPB()"></div>
+      <button class="btn btn-blue btn-sm" onclick="openAddPB()">➕ Thêm phòng ban</button>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">🏢 Danh sách phòng ban / PGD</div><span id="pbCnt" style="font-size:11px;color:#8fa3b8"></span></div>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th>Tên phòng / PGD</th><th>Mã BCT (BSC)</th><th style="width:110px">Thao tác</th></tr></thead>
+        <tbody id="pbTb"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- IMPORT -->
+  <div class="sec" id="sec-imp">
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">📥 Import file BO_CHI_TIEU_KH.xlsx</div>
+        <button class="btn btn-gold btn-sm" onclick="downloadSample()">⬇ Tải file mẫu (.xlsx)</button>
+      </div>
+      <div class="card-b">
+        <div id="impAlert"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+          <div style="background:#e0f5f3;border-radius:10px;padding:13px">
+            <div style="font-weight:700;font-size:12px;color:#005452;margin-bottom:8px">📋 Sheet "KPI" — Cán bộ &amp; chỉ tiêu</div>
+            <table style="width:100%;font-size:11.5px;border-collapse:collapse">
+              <tr style="background:#c8dff7"><td style="padding:3px 7px;font-weight:700;border-radius:3px">Cột</td><td style="padding:3px 7px;font-weight:700">Mô tả</td><td style="padding:3px 7px;font-weight:700">Ví dụ</td></tr>
+              <tr><td style="padding:3px 7px;font-family:monospace;color:#005452">MA_CB</td><td style="padding:3px 7px">Mã cán bộ</td><td style="padding:3px 7px;color:#445566">164245</td></tr>
+              <tr style="background:#f0f7ff"><td style="padding:3px 7px;font-family:monospace;color:#005452">MA_AM</td><td style="padding:3px 7px">Mã AM</td><td style="padding:3px 7px;color:#445566">44116008</td></tr>
+              <tr><td style="padding:3px 7px;font-family:monospace;color:#005452">TEN_CB</td><td style="padding:3px 7px">Họ tên cán bộ</td><td style="padding:3px 7px;color:#445566">Nguyễn Văn A</td></tr>
+              <tr style="background:#f0f7ff"><td style="padding:3px 7px;font-family:monospace;color:#005452">EMAIL</td><td style="padding:3px 7px">Email</td><td style="padding:3px 7px;color:#445566"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81eff7e0c1e0e6f3e8e3e0efeaaff7ef">[email&#160;protected]</a></td></tr>
+              <tr><td style="padding:3px 7px;font-family:monospace;color:#005452">PHONG</td><td style="padding:3px 7px">Phòng / PGD</td><td style="padding:3px 7px;color:#445566">CẨM BÌNH</td></tr>
+              <tr style="background:#f0f7ff"><td style="padding:3px 7px;font-family:monospace;color:#005452">VI_TRI</td><td style="padding:3px 7px">Vị trí công việc</td><td style="padding:3px 7px;color:#445566">QLKH</td></tr>
+              <tr><td style="padding:3px 7px;font-family:monospace;color:#005452">VAI_TRO</td><td style="padding:3px 7px">Vai trò</td><td style="padding:3px 7px;color:#445566">CAN_BO</td></tr>
+              <tr style="background:#f0f7ff"><td style="padding:3px 7px;font-family:monospace;color:#005452">TRANG THAI</td><td style="padding:3px 7px">Trạng thái</td><td style="padding:3px 7px;color:#445566">HOAT_DONG</td></tr>
+              <tr><td style="padding:3px 7px;font-family:monospace;color:#005452">CHI TIEU</td><td style="padding:3px 7px">Tên chỉ tiêu</td><td style="padding:3px 7px;color:#445566">Dư nợ cuối kỳ</td></tr>
+            </table>
+            <div style="margin-top:8px;font-size:11px;color:#005452">⚠ Mỗi hàng = 1 cán bộ × 1 chỉ tiêu. Lặp lại các cột cán bộ cho mỗi chỉ tiêu.</div>
+          </div>
+          <div style="background:#e0f5f3;border-radius:10px;padding:13px">
+            <div style="font-weight:700;font-size:12px;color:#005452;margin-bottom:8px">📋 Sheet "BSC" — Mã BCT &amp; chỉ tiêu</div>
+            <table style="width:100%;font-size:11.5px;border-collapse:collapse">
+              <tr style="background:#b8dfc9"><td style="padding:3px 7px;font-weight:700">Cột</td><td style="padding:3px 7px;font-weight:700">Mô tả</td><td style="padding:3px 7px;font-weight:700">Ví dụ</td></tr>
+              <tr><td style="padding:3px 7px;font-family:monospace;color:#005452">MÃ BCT</td><td style="padding:3px 7px">Mã bộ chỉ tiêu</td><td style="padding:3px 7px;color:#445566">PGD / KHCN / KHDN / KHƯT</td></tr>
+              <tr style="background:#f0faf5"><td style="padding:3px 7px;font-family:monospace;color:#005452">CHỈ TIÊU</td><td style="padding:3px 7px">Tên chỉ tiêu</td><td style="padding:3px 7px;color:#445566">Dư nợ tín dụng cuối kỳ</td></tr>
+            </table>
+            <div style="margin-top:10px;font-size:11.5px;color:#005452;font-weight:700">Quy tắc phòng → Mã BCT:</div>
+            <div style="margin-top:6px;font-size:11px;color:#005452;line-height:1.7">
+              • CẨM BÌNH, CẨM PHÚ, CẨM THỦY, MÔNG DƯƠNG, QUANG HANH, VÂN ĐỒN → <b>PGD</b><br>
+              • KHCN → <b>KHCN</b> &nbsp;• KHDN → <b>KHDN</b> &nbsp;• KHƯT → <b>KHƯT</b>
+            </div>
+          </div>
+        </div>
+        <div class="iz" onclick="document.getElementById('fImp').click()" ondragover="dze(event)" ondragleave="dze2(event)" ondrop="dropF(event)">
+          <div style="font-size:36px">📂</div>
+          <p style="font-weight:700;font-size:13px;margin:6px 0">Kéo thả hoặc nhấn để chọn file .xlsx</p>
+          <p style="font-size:11.5px;color:#8fa3b8">File phải có 2 sheet: <b>KPI</b> và <b>BSC</b> đúng cấu trúc trên</p>
+        </div>
+        <input type="file" id="fImp" accept=".xlsx" style="display:none" onchange="doImport(this)">
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">⚙️ Quản lý dữ liệu</div></div>
+      <div class="card-b" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-gray btn-sm" onclick="resetDef()">🔄 Khôi phục mặc định</button>
+        <button class="btn btn-red btn-sm" onclick="clearAllPG()">🗑 Xóa tất cả phân giao</button>
+        <span style="font-size:11px;color:#8fa3b8">Đồng bộ realtime qua Firebase</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUẢN LÝ USER -->
+  <div class="sec" id="sec-users">
+    <div class="fbar">
+      <div class="srch"><span class="srch-ic">🔍</span><input id="uSQ" placeholder="Tìm user..." oninput="renderUsers()"></div>
+      <button class="btn btn-blue btn-sm" onclick="openAddUser()">➕ Thêm tài khoản</button>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">🔑 Tài khoản hệ thống</div>
+        <span id="uCnt" style="font-size:11px;color:#8fa3b8"></span>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>#</th><th>Username</th><th>Họ tên</th><th>Vai trò</th><th>Phòng ban</th><th>Trạng thái</th><th style="width:90px">Thao tác</th></tr></thead>
+        <tbody id="uTb"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- XUẤT DỮ LIỆU -->
+  <div class="sec" id="sec-exp">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="card">
+        <div class="card-h"><div class="card-t">📤 Xuất danh sách phân giao</div></div>
+        <div class="card-b">
+          <div class="fg"><label class="fl">Lọc bộ chỉ tiêu</label>
+            <select class="fc" id="expBo"><option value="">Tất cả (KPI + BSC)</option><option>KPI</option><option>BSC</option></select>
+          </div>
+          <div class="fg"><label class="fl">Lọc kỳ đánh giá</label>
+            <select class="fc" id="expKy"><option value="">Tất cả kỳ</option></select>
+          </div>
+          <div class="fg"><label class="fl">Định dạng xuất</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                <input type="radio" name="expFmt" value="summary" checked> <b>Tóm tắt</b> — 1 hàng/phân giao
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                <input type="radio" name="expFmt" value="detail"> <b>Chi tiết</b> — 1 hàng/chỉ tiêu
+              </label>
+            </div>
+          </div>
+          <button class="btn btn-green" onclick="exportPGExcel()" style="width:100%;justify-content:center;padding:10px">
+            ⬇ Xuất Excel phân giao
+          </button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-t">📋 Xuất bộ chỉ tiêu gốc</div></div>
+        <div class="card-b">
+          <p style="font-size:12.5px;color:#445566;margin-bottom:14px">Xuất lại file Excel chứa dữ liệu bộ chỉ tiêu KPI và BSC đang dùng trong hệ thống.</p>
+          <button class="btn btn-blue" onclick="exportBoCT()" style="width:100%;justify-content:center;padding:10px;margin-bottom:10px">
+            ⬇ Xuất bộ chỉ tiêu KPI + BSC
+          </button>
+          <button class="btn btn-gold" onclick="downloadSample()" style="width:100%;justify-content:center;padding:10px">
+            ⬇ Tải file mẫu import
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="card-t">📊 Xem trước dữ liệu sẽ xuất</div><span id="expPrev" style="font-size:11px;color:#8fa3b8"></span></div>
+      <div class="tw" style="max-height:380px;overflow-y:auto"><table>
+        <thead><tr><th>Bộ CT</th><th>Cán bộ / Phòng</th><th>Vị trí / Mã BCT</th><th>Kỳ</th><th>Số CT</th><th>Đã nhập KH</th><th>Người giao</th><th>Ngày lập</th></tr></thead>
+        <tbody id="expTb"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL: Chi tiết PG -->
+<div class="ov" id="ov-pg">
+  <div class="modal">
+    <div class="mhd"><div class="mtt" id="mPGT">Chi tiết phân giao</div><button class="mxb" onclick="closeM('ov-pg')">×</button></div>
+    <div class="mbd" id="mPGB"></div>
+    <div class="mft">
+      <button class="btn btn-green btn-sm" id="mDuyet" style="display:none">✅ Duyệt</button>
+      <button class="btn btn-gold btn-sm" id="mBoduyet" style="display:none">↩ Bỏ duyệt</button>
+      <button class="btn btn-red btn-sm" id="mDel">🗑 Xóa</button>
+      <button class="btn btn-green btn-sm" id="mExp">⬇ Xuất Excel</button>
+      <button class="btn btn-gray" onclick="closeM('ov-pg')">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Phòng ban -->
+<div class="ov" id="ov-pb">
+  <div class="modal" style="max-width:420px">
+    <div class="mhd"><div class="mtt" id="pbMod_title">Phòng ban</div><button class="mxb" onclick="closeM('ov-pb')">×</button></div>
+    <div class="mbd">
+      <div class="fg"><label class="fl">Tên phòng / PGD <span class="req">*</span></label><input class="fc" id="pbMod_ph" placeholder="VD: CẨM BÌNH"></div>
+      <div class="fg"><label class="fl">Mã BCT (BSC) <span class="req">*</span></label><select class="fc" id="pbMod_bct"></select></div>
+      <input type="hidden" id="pbMod_phOld">
+    </div>
+    <div class="mft"><button class="btn btn-gray" onclick="closeM('ov-pb')">Hủy</button><button class="btn btn-blue" onclick="savePB()">💾 Lưu</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Thêm vị trí KPI -->
+<div class="ov" id="ov-vt">
+  <div class="modal" style="max-width:380px">
+    <div class="mhd"><div class="mtt" id="vtMod_title">Thêm vị trí KPI</div><button class="mxb" onclick="closeM('ov-vt')">×</button></div>
+    <div class="mbd">
+      <div class="fg"><label class="fl">Tên vị trí <span class="req">*</span></label><input class="fc" id="vtMod_name" placeholder="VD: QLKH"></div>
+    </div>
+    <div class="mft"><button class="btn btn-gray" onclick="closeM('ov-vt')">Hủy</button><button class="btn btn-blue" onclick="saveVT()">💾 Lưu</button></div>
+  </div>
+</div>
+
+<!-- MODAL: KPI chỉ tiêu -->
+<div class="ov" id="ov-kpimod">
+  <div class="modal" style="max-width:500px">
+    <div class="mhd"><div class="mtt" id="kpiMod_title">Chỉ tiêu KPI</div><button class="mxb" onclick="closeM('ov-kpimod')">×</button></div>
+    <div class="mbd">
+      <div class="fg"><label class="fl">Vị trí <span class="req">*</span></label><select class="fc" id="kpiMod_vt"></select></div>
+      <div class="fg"><label class="fl">Tên chỉ tiêu <span class="req">*</span></label><textarea class="fc" id="kpiMod_ct" rows="3" placeholder="Nhập tên chỉ tiêu..."></textarea></div>
+      <input type="hidden" id="kpiMod_oldCt">
+    </div>
+    <div class="mft"><button class="btn btn-gray" onclick="closeM('ov-kpimod')">Hủy</button><button class="btn btn-blue" onclick="saveKPIMod()">💾 Lưu</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Thêm mã BCT -->
+<div class="ov" id="ov-mabct">
+  <div class="modal" style="max-width:380px">
+    <div class="mhd"><div class="mtt">Thêm mã BCT mới</div><button class="mxb" onclick="closeM('ov-mabct')">×</button></div>
+    <div class="mbd">
+      <div class="fg"><label class="fl">Mã BCT <span class="req">*</span></label><input class="fc" id="maBCTMod_name" placeholder="VD: PGD / KHCN..."></div>
+    </div>
+    <div class="mft"><button class="btn btn-gray" onclick="closeM('ov-mabct')">Hủy</button><button class="btn btn-blue" onclick="saveMaBCT()">💾 Lưu</button></div>
+  </div>
+</div>
+
+<!-- MODAL: BSC chỉ tiêu -->
+<div class="ov" id="ov-bscmod">
+  <div class="modal" style="max-width:500px">
+    <div class="mhd"><div class="mtt" id="bscMod_title">Chỉ tiêu BSC</div><button class="mxb" onclick="closeM('ov-bscmod')">×</button></div>
+    <div class="mbd">
+      <div class="fg"><label class="fl">Mã BCT <span class="req">*</span></label><select class="fc" id="bscMod_ma"></select></div>
+      <div class="fg"><label class="fl">Tên chỉ tiêu <span class="req">*</span></label><textarea class="fc" id="bscMod_ct" rows="3" placeholder="Nhập tên chỉ tiêu..."></textarea></div>
+      <input type="hidden" id="bscMod_oldCt">
+    </div>
+    <div class="mft"><button class="btn btn-gray" onclick="closeM('ov-bscmod')">Hủy</button><button class="btn btn-blue" onclick="saveBSCMod()">💾 Lưu</button></div>
+  </div>
+</div>
+
+<!-- MODAL: User -->
+<div class="ov" id="ov-user">
+  <div class="modal" style="max-width:440px">
+    <div class="mhd"><div class="mtt" id="uMod_tt">Tài khoản</div><button class="mxb" onclick="closeM('ov-user')">×</button></div>
+    <div class="mbd">
+      <div class="fr2">
+        <div class="fg"><label class="fl">Username <span class="req">*</span></label>
+          <input class="fc" id="uMod_un" placeholder="vd: truong_cambinh" autocomplete="off">
+        </div>
+        <div class="fg"><label class="fl">Họ tên <span class="req">*</span></label>
+          <input class="fc" id="uMod_hn" placeholder="Nguyễn Văn A">
+        </div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Mật khẩu <span class="req" id="uMod_pr">*</span></label>
+          <input class="fc" type="password" id="uMod_pw" placeholder="(để trống = giữ nguyên)" autocomplete="new-password">
+        </div>
+        <div class="fg"><label class="fl">Vai trò <span class="req">*</span></label>
+          <select class="fc" id="uMod_role" onchange="onUMRoleChange()">
+            <option value="">-- Chọn vai trò --</option>
+            <option value="admin">🔴 Admin</option>
+            <option value="truong">🔵 Trưởng đơn vị</option>
+            <option value="cb">🟢 Cán bộ phòng</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg" id="uMod_phWrap" style="display:none">
+        <label class="fl">Phòng ban <span class="req">*</span></label>
+        <select class="fc" id="uMod_ph"><option value="">-- Chọn phòng --</option></select>
+      </div>
+      <div class="fg">
+        <label class="fl">Trạng thái</label>
+        <select class="fc" id="uMod_act">
+          <option value="1">✅ Hoạt động</option>
+          <option value="0">🚫 Khóa</option>
+        </select>
+      </div>
+      <input type="hidden" id="uMod_old">
+    </div>
+    <div class="mft">
+      <button class="btn btn-gray" onclick="closeM('ov-user')">Hủy</button>
+      <button class="btn btn-blue" onclick="saveUser()">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ═══════════════════════════════════════════════════
+// DEFAULT DATA
+// ═══════════════════════════════════════════════════
+const D_CB  = [{"maCB": "164245", "maAM": "44116008", "tenCB": "Lê Văn Thái", "phong": "CẨM BÌNH", "viTri": "QLKH", "trangThai": "HOAT_DONG"}, {"maCB": "173739", "maAM": "44116002", "tenCB": "Nguyễn Hằng Nga", "phong": "CẨM BÌNH", "viTri": "VRM/DRM", "trangThai": "HOAT_DONG"}, {"maCB": "151180", "maAM": "", "tenCB": "Nguyễn Hồng Ánh", "phong": "CẨM BÌNH", "viTri": "HT", "trangThai": "HOAT_DONG"}, {"maCB": "166744", "maAM": "44116003", "tenCB": "Nguyễn Văn Thành", "phong": "CẨM BÌNH", "viTri": "VRM", "trangThai": "HOAT_DONG"}, {"maCB": "181959", "maAM": "44116005", "tenCB": "Trần Thu Hà", "phong": "CẨM BÌNH", "viTri": "QLKH", "trangThai": "HOAT_DONG"}, {"maCB": "150242", "maAM": "44116004", "tenCB": "Trịnh Thu Hằng", "phong": "CẨM BÌNH", "viTri": "PGĐ RBT", "trangThai": "HOAT_DONG"}, {"maCB": "161198", "maAM": "44116007", "tenCB": "Vũ Thị Thúy Hằng", "phong": "CẨM BÌNH", "viTri": "HT", "trangThai": "HOAT_DONG"}, {"maCB": "161170", "maAM": "44115704", "tenCB": "Đào Mạnh Thắng", "phong": "CẨM PHÚ", "viTri": "PRM", "trangThai": "HOAT_DONG"}, {"maCB": "157", "maAM": "44115700", "tenCB": "Mã Chung", "phong": "CẨM PHÚ", "viTri": "HT", "trangThai": "HOAT_DONG"}, {"maCB": "177670", "maAM": "44115706", "tenCB": "Nguyễn Hiếu Trung", "phong": "CẨM PHÚ", "viTri": "VRM", "trangThai": "HOAT_DONG"}, {"maCB": "19304", "maAM": "44115708", "tenCB": "Phạm Thị Tuyết", "phong": "CẨM PHÚ", "viTri": "PGĐ RBT", "trangThai": "HOAT_DONG"}, {"maCB": "149035", "maAM": "", "tenCB": "Tạ Thị Nga", "phong": "CẨM PHÚ", "viTri": "HT", "trangThai": "HOAT_DONG"}, {"maCB": "164255", "maAM": "44115702", "tenCB": "Vũ Thị Thu Hiền", "phong": "CẨM PHÚ", "viTri": "VRM/DRM", "trangThai": "HOAT_DONG"}, {"maCB": "164174", "maAM": "44115503", "tenCB": "Đặng Xuân Nam", "phong": "CẨM THỦY", "viTri": "VRM/DRM", "trangThai": "HOAT_DONG"}, {"maCB": "171187", "maAM": "44115506", "tenCB": "Đoàn Thị Phương Thảo", "phong": "CẨM THỦY", "viTri": "HT", "trangThai": "HOAT_DONG"}, {"maCB": "172820", "maAM": "44115501", "tenCB": "Nguyễn Thị Minh Thùy", "phong": "CẨM THỦY", "viTri": "PRM", "trangThai": "HOAT_DONG"}, {"maCB": "158668", "maAM": "44115504", "tenCB": "Nguyễn Thị Thanh Huyền", "phong": "CẨM THỦY", "viTri": "QLKH", "trangThai": "HOAT_DONG"}, {"maCB": "149134", "maAM": "44115502", "tenCB": "Nguyễn Thúy Phương", "phong": "CẨM THỦY", "viTri": "PGĐ RBT", "trangThai": "HOAT_DONG"}, {"maCB": "165992", "maAM": "44115507", "tenCB": "Phạm Khánh Linh", "phong": "CẨM THỦY", "viTri": "HT", "trangThai": "HOAT_DONG"}, {"maCB": "181960", "maAM": "44115505", "tenCB": "Trần Tiến Đạt", "phong": "CẨM THỦY", "viTri": "VRM", "trangThai": "HOAT_DONG"}, {"maCB": "180183", "maAM": "44112107", "tenCB": "Bùi Thị Thêu", "phong": "KHCN", "viTri": "VRM", "trangThai": "HOAT_DONG"}, {"maCB": "164254", "maAM": "44112114", "tenCB": "Bùi Thuỳ Dung", "phong": "KHCN", "viTri": "VRM", "trangThai": "HOAT_DONG"}, {"maCB": "155446", "maAM": "44112112", "tenCB": "Đặng Thị Thu Hà", "phong": "KHCN", "viTri": "PTP PRM", "trangThai": "HOAT_DONG"}, {"maCB": "174872", "maAM": "44112110", "tenCB": "Trần Thị Cúc", "phong": "KHCN", "viTri": "VRM", "trangThai": "HOAT_DONG"}, {"maCB": "177965", "maAM": "44102109", "tenCB": "Đỗ Thùy Dung", "phong": "KHDN", "viTri": "QLKHDN", "trangThai": "HOAT_DONG"}, {"maCB": "183570", "maAM": "44102110", "tenCB": "Nguyễn Hà Trang", "phong": "KHDN", "viTri": "QLKHDN", "trangThai": "HOAT_DONG"}, {"maCB": "165853", "maAM": "44102107", "tenCB": "Nguyễn Thị Hiền", "phong": "KHDN", "viTri": "QLKHDN", "trangThai": "HOAT_DONG"}, {"maCB": "158931", "maAM": "44102104", "tenCB": "Nguyễn Thị Minh Thủy", "phong": "KHDN", "viTri": "QLKHDN", "trangThai": "HOAT_DONG"}, {"maCB": "180185", "maAM": "44102108", "tenCB": "Nguyễn Thị Trà", "phong": "KHDN", "viTri": "QLKHDN", "trangThai": "HOAT_DONG"}, {"maCB": "155698", "maAM": "44102102", "tenCB": "Phạm Minh Duy", "phong": "KHDN", "viTri": "QLKHDN", "trangThai": "HOAT_DONG"}, {"maCB": "159673", "maAM": "44102105", "tenCB": "Tạ Thị Kim Dung", "phong": "KHDN", "viTri": "QLKHDN", "trangThai": "HOAT_DONG"}, {"maCB": "180732", "maAM": "44102106", "tenCB": "Trần Trung Nghĩa", "phong": "KHDN", "viTri": "QLKHDN", "trangThai": "HOAT_DONG"}, {"maCB": "156883", "maAM": "44112204", "tenCB": "Lê Thị Dương", "phong": "KHƯT", "viTri": "PRM", "trangThai": "HOAT_DONG"}, {"maCB": "164263", "maAM": "44112202", "tenCB": "Nguyễn Quảng Hà", "phong": "KHƯT", "viTri": "PTP PRME", "trangThai": "HOAT_DONG"}, {"maCB": "156882", "maAM": "44112203", "tenCB": "Nguyễn Thị Hiền", "phong": "KHƯT", "viTri": "PRM", "trangThai": "HOAT_DONG"}, {"maCB": "180769", "maAM": "44112205", "tenCB": "Phạm Thị Hương", "phong": "KHƯT", "viTri": "PRM", "trangThai": "HOAT_DONG"}, {"maCB": "175454", "maAM": "44115801", "tenCB": "Đào Ngọc Bích", "phong": "MÔNG DƯƠNG", "viTri": "VRM/DRM", "trangThai": "HOAT_DONG"}, {"maCB": "161169", "maAM": "44115802", "tenCB": "Nguyễn Công Hữu", "phong": "MÔNG DƯƠNG", "viTri": "VRM", "trangThai": "HOAT_DONG"}, {"maCB": "161167", "maAM": "44115707", "tenCB": "Nguyễn Thị Kim Thương", "phong": "MÔNG DƯƠNG", "viTri": "HT", "trangThai": "HOAT_DONG"}, {"maCB": "151184", "maAM": "44115808", "tenCB": "Nguyễn Thị Tâm", "phong": "MÔNG DƯƠNG", "viTri": "PGĐ RBT", "trangThai": "HOAT_DONG"}, {"maCB": "19337", "maAM": "44115901", "tenCB": "Đỗ Thị Minh Thoan", "phong": "QUANG HANH", "viTri": "PGĐ RBT", "trangThai": "HOAT_DONG"}, {"maCB": "171781", "maAM": "44115909", "tenCB": "Lưu Mạnh Cường", "phong": "QUANG HANH", "viTri": "VRM/DRM", "trangThai": "HOAT_DONG"}, {"maCB": "165898", "maAM": "44115908", "tenCB": "Nhâm Chí Trung", "phong": "QUANG HANH", "viTri": "QLKH", "trangThai": "HOAT_DONG"}, {"maCB": "162019", "maAM": "44115907", "tenCB": "Vũ Thị Nụ", "phong": "QUANG HANH", "viTri": "VRM", "trangThai": "HOAT_DONG"}, {"maCB": "181958", "maAM": "44116103", "tenCB": "Bùi Đức Thắng", "phong": "VÂN ĐỒN", "viTri": "QLKH", "trangThai": "HOAT_DONG"}, {"maCB": "141329", "maAM": "44116104", "tenCB": "Châu Ngọc Chất", "phong": "VÂN ĐỒN", "viTri": "PGĐ RBT", "trangThai": "HOAT_DONG"}, {"maCB": "171191", "maAM": "44116105", "tenCB": "Nguyễn Thị Thúy Ngân", "phong": "VÂN ĐỒN", "viTri": "HT", "trangThai": "HOAT_DONG"}, {"maCB": "177288", "maAM": "44116102", "tenCB": "Phạm Lan Ngọc Ánh", "phong": "VÂN ĐỒN", "viTri": "DRM", "trangThai": "HOAT_DONG"}];   // [{maCB,maAM,tenCB,phong,viTri,trangThai}]
+const D_VT  = {"QLKH": ["Doanh thu Bảo hiểm nhân thọ bán mới", "Dư nợ cuối kỳ", "Dư nợ KHTC cuối kỳ", "Dư nợ tín dụng bán lẻ cuối kỳ", "Dư nợ tín dụng khách hàng SME", "Huy động vốn cuối kỳ", "Huy động vốn không kỳ hạn bình quân", "Huy động vốn KHTC cuối kỳ", "Huy động vốn KKH KHTC bình quân", "Số lượng khách hàng SMB mới có PSGD", "Số lượng KHCN mới có quan hệ tín dụng mới", "Số lượng TCKT mới có quan hệ tín dụng", "Số lượng thẻ tín dụng phát hành mới có phát sinh giao dịch", "Thu dịch vụ bảo hiểm", "Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Tỷ lệ nợ quá hạn/Tổng dư nợ", "Tỷ lệ nợ xấu gộp/Tổng dư nợ", "SLSP/KH", "Quy mô KHDN tăng mới", "Quy mô KHCN tăng mới"], "VRM/DRM": ["Dư nợ cuối kỳ", "Dư nợ KHTC cuối kỳ", "Dư nợ tín dụng bán lẻ cuối kỳ", "Dư nợ tín dụng khách hàng SME", "Huy động vốn cuối kỳ", "Huy động vốn không kỳ hạn bình quân", "Huy động vốn KHTC cuối kỳ", "Huy động vốn KKH KHTC bình quân", "SLSP/KH", "Số lượng KH SMB lũy kế (từ KHTT trở lên) có PSGD trong kỳ", "Số lượng khách hàng nâng hạng lên KHCC", "Số lượng KHCN mới có quan hệ tín dụng mới", "Số lượng TCKT mới có quan hệ tín dụng", "Số lượng thẻ tín dụng phát hành mới có phát sinh giao dịch", "Thu dịch vụ bảo hiểm", "Thu dịch vụ BHNT (BML)", "Thu dịch vụ ròng (không gồm thu dịch vụ bảo hiểm và thu phí SPĐT)", "Thu KDNT&PS", "Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu nhập ròng bán lẻ (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu phí Sản phẩm đầu tư", "Tỷ lệ nợ quá hạn/Tổng dư nợ", "Tỷ lệ nợ xấu gộp/Tổng dư nợ", "Quy mô KHDN tăng mới", "Quy mô KHCN tăng mới"], "HT": ["Huy động vốn cuối kỳ", "Huy động vốn bán lẻ cuối kỳ", "Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Số lượng TCKT mới có quan hệ tín dụng", "Số lượng KHCN mới có quan hệ tín dụng mới", "Số lượng thẻ tín dụng phát hành mới có phát sinh giao dịch", "Huy động vốn không kỳ hạn bình quân", "Dư nợ cuối kỳ", "Dư nợ tín dụng bán lẻ cuối kỳ", "Thu dịch vụ ròng", "Thu nợ HTNB", "Quy mô KHCN tăng mới", "Số lượng khách hàng SMB mới có PSGD"], "VRM": ["Dư nợ tín dụng bán lẻ cuối kỳ", "Huy động vốn cuối kỳ", "Huy động vốn bán lẻ cuối kỳ", "Huy động vốn không kỳ hạn bình quân", "SLSP/KH", "Số lượng KH SMB lũy kế (từ KHTT trở lên) có PSGD trong kỳ", "Số lượng khách hàng nâng hạng lên KHCC", "Số lượng KHCN mới có quan hệ tín dụng mới", "Số lượng thẻ tín dụng phát hành mới có phát sinh giao dịch", "Thu dịch vụ bảo hiểm", "Thu dịch vụ BHNT (BML)", "Thu dịch vụ ròng (không gồm thu dịch vụ bảo hiểm và thu phí SPĐT)", "Thu KDNT&PS", "Thu nhập ròng bán lẻ (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu phí Sản phẩm đầu tư", "Quy mô KHCN tăng mới"], "PGĐ RBT": ["Dư nợ cuối kỳ", "Huy động vốn cuối kỳ", "Huy động vốn không kỳ hạn bình quân", "SLSP/KH", "Số lượng KH SMB lũy kế (từ KHTT trở lên) có PSGD trong kỳ", "Số lượng khách hàng nâng hạng lên KHCC", "Số lượng khách hàng SMB mới có PSGD", "Số lượng KHCN mới có quan hệ tín dụng mới", "Số lượng khoản vay/thẻ tín dụng giới thiệu thành công", "Số lượng TCKT mới có quan hệ tín dụng", "Số lượng thẻ tín dụng phát hành mới có phát sinh giao dịch", "Thu dịch vụ bảo hiểm", "Thu dịch vụ BHNT (BML)", "Thu dịch vụ ròng", "Thu KDNT&PS", "Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu phí Sản phẩm đầu tư", "Tỷ lệ nợ quá hạn/Tổng dư nợ", "Tỷ lệ nợ xấu gộp/Tổng dư nợ", "Quy mô KHCN tăng mới", "Quy mô KHDN tăng mới"], "PRM": ["Dư nợ tín dụng bán lẻ cuối kỳ", "Huy động vốn cuối kỳ", "Huy động vốn bán lẻ cuối kỳ", "Huy động vốn không kỳ hạn bình quân", "SLSP/KH", "Số lượng khách hàng cao cấp lũy kế", "Số lượng khách hàng nâng hạng lên KHCC hạng Premier Elite trở lên", "Số lượng khách hàng nâng hạng lên KHCC hạng Private trở lên", "Số lượng KHCN mới có quan hệ tín dụng mới", "Số lượng thẻ tín dụng phát hành mới có phát sinh giao dịch", "Thu dịch vụ bảo hiểm", "Thu dịch vụ BHNT (BML)", "Thu dịch vụ ròng (không gồm thu dịch vụ bảo hiểm và thu phí SPĐT)", "Thu KDNT&PS", "Thu nhập ròng bán lẻ (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu phí Sản phẩm đầu tư", "Quy mô KHDN tăng mới", "Quy mô KHCN tăng mới"], "PTP PRM": ["Dư nợ tín dụng bán lẻ cuối kỳ", "Huy động vốn cuối kỳ", "Huy động vốn bán lẻ cuối kỳ", "Huy động vốn không kỳ hạn bình quân", "SLSP/KH", "Số lượng KH SMB lũy kế (từ KHTT trở lên) có PSGD trong kỳ", "Số lượng khách hàng nâng hạng lên KHCC", "Số lượng khách hàng SMB mới có PSGD", "Số lượng KHCN mới có quan hệ tín dụng mới", "Số lượng thẻ tín dụng phát hành mới có phát sinh giao dịch", "Thu dịch vụ bảo hiểm", "Thu dịch vụ BHNT (BML)", "Thu dịch vụ ròng", "Thu KDNT&PS", "Thu nhập ròng bán lẻ (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu phí Sản phẩm đầu tư", "Quy mô KHCN tăng mới"], "QLKHDN": ["Doanh thu Bảo hiểm nhân thọ bán mới", "Dư nợ KHTC cuối kỳ", "Dư nợ tín dụng khách hàng SME", "Huy động vốn cuối kỳ", "Huy động vốn KHTC cuối kỳ", "Huy động vốn KKH KHTC bình quân", "Số lượng khách hàng mới có phát sinh thu nhập (gồm cả KH mở CIF mới và khách hàng inactive được active lại)", "Số lượng khách hàng tăng mới đăng ký dịch vụ Ibank có phát sinh giao dịch", "Số lượng TCKT mới có quan hệ tín dụng", "Thu dịch vụ bảo hiểm", "Thu dịch vụ ròng", "Thu KDNT&PS", "Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu nhập ròng KHTC (không gồm thu nợ HTNB, Thu KDNTPS và lãi dự thu nhóm 1 quá hạn)", "Thu nhập thuần từ hoạt động ngân hàng số", "Thu nhập từ bảo lãnh", "Tỷ lệ nợ quá hạn/Tổng dư nợ", "Tỷ lệ nợ xấu gộp/Tổng dư nợ", "Quy mô KHDN tăng mới"], "PTP PRME": ["Dư nợ tín dụng bán lẻ cuối kỳ", "Huy động vốn cuối kỳ", "Huy động vốn bán lẻ cuối kỳ", "Huy động vốn không kỳ hạn bình quân", "SLSP/KH", "Số lượng khách hàng cao cấp lũy kế", "Số lượng khách hàng nâng hạng lên KHCC hạng Premier Elite trở lên", "Số lượng KHCN mới có quan hệ tín dụng mới", "Số lượng thẻ tín dụng phát hành mới có phát sinh giao dịch", "Thu dịch vụ bảo hiểm", "Thu dịch vụ BHNT (BML)", "Thu dịch vụ ròng (không gồm thu dịch vụ bảo hiểm và thu phí SPĐT)", "Thu KDNT&PS", "Thu nhập ròng bán lẻ (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu phí Sản phẩm đầu tư", "Quy mô KHCN tăng mới"], "DRM": ["Dư nợ cuối kỳ", "Dư nợ KHTC cuối kỳ", "Dư nợ tín dụng bán lẻ cuối kỳ", "Dư nợ tín dụng khách hàng SME", "Huy động vốn cuối kỳ", "Huy động vốn không kỳ hạn bình quân", "Huy động vốn KHTC cuối kỳ", "Huy động vốn KKH KHTC bình quân", "SLSP/KH", "Số lượng KH SMB lũy kế (từ KHTT trở lên) có PSGD trong kỳ", "Số lượng khách hàng nâng hạng lên KHCC", "Số lượng KHCN mới có quan hệ tín dụng mới", "Số lượng TCKT mới có quan hệ tín dụng", "Số lượng thẻ tín dụng phát hành mới có phát sinh giao dịch", "Thu dịch vụ bảo hiểm", "Thu dịch vụ BHNT (BML)", "Thu dịch vụ ròng (không gồm thu dịch vụ bảo hiểm và thu phí SPĐT)", "Thu KDNT&PS", "Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu nhập ròng bán lẻ (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu phí Sản phẩm đầu tư", "Tỷ lệ nợ quá hạn/Tổng dư nợ", "Tỷ lệ nợ xấu gộp/Tổng dư nợ", "Quy mô KHCN tăng mới", "Quy mô KHDN tăng mới"]};   // {viTri:[chiTieu,...]}
+const D_BSC = {"PGD": ["Hoa hồng bảo hiểm (Bic, Metlife)", "Thu nhập ròng từ hoạt động Ngân hàng số", "Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Số lượng khách hàng cao cấp lũy kế", "Dư nợ tín dụng cuối kỳ", "Số lượng thẻ tín dụng mới có phát sinh giao dịch", "Mức độ hài lòng của khách hàng bên ngoài", "Huy động vốn KKH bình quân", "Số lượng khách hàng tăng mới đăng ký dịch vụ Smartbanking và Ibank có phát sinh giao dịch", "Huy động vốn cuối kỳ", "Tỷ lệ nợ quá hạn/Tổng dư nợ", "Số lượng giao dịch bình quân quy chuẩn/người", "Tỷ lệ lỗi tác nghiệp bình quân", "Tỷ lệ nợ xấu gộp/Tổng dư nợ", "Thu kinh doanh ngoại tệ và phái sinh", "Thu dịch vụ ròng", "Thu nợ hạch toán ngoại bảng", "Huy động vốn bình quân", "Dư nợ tín dụng bình quân", "Kết quả các kỳ thi sát hạch và các khóa đào tạo, tập huấn", "Số lượng KHCN mới có quan hệ tín dụng mới", "Phát triển KHTC mới hiệu quả", "Thu dịch vụ BHNT (BML)", "Số cán bộ vi phạm ý thức tổ chức kỷ luật", "Vượt giới hạn dư nợ cầm cố/thấu chi tiền gửi giấy tờ có giá"], "KHCN": ["Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Hoa hồng bảo hiểm (Bic, Metlife)", "Thu nhập ròng từ hoạt động Ngân hàng số", "Thu phí sản phẩm đầu tư", "Số lượng khách hàng cao cấp lũy kế", "Số lượng khách hàng tăng mới đăng ký dịch vụ Smartbanking và Ibank có phát sinh giao dịch", "Huy động vốn cuối kỳ", "Dư nợ tín dụng cuối kỳ", "Số lượng thẻ tín dụng mới có phát sinh giao dịch", "Huy động vốn KKH bình quân", "Tỷ lệ nợ xấu gộp/Tổng dư nợ", "Tỷ lệ nợ quá hạn/Tổng dư nợ", "Thu dịch vụ ròng", "Thu nợ hạch toán ngoại bảng", "Dư nợ tín dụng bình quân", "Huy động vốn bình quân", "Dư nợ tín dụng TDH cuối kỳ ", "Kết quả các kỳ thi sát hạch và các khóa đào tạo, tập huấn", "Số lượng KHCN mới có quan hệ tín dụng mới", "Vượt giới hạn dư nợ cầm cố/thấu chi tiền gửi giấy tờ có giá", "Thu dịch vụ BHNT (BML)", "Số cán bộ vi phạm ý thức tổ chức kỷ luật"], "KHDN": ["Hoa hồng bảo hiểm (Bic, Metlife)", "Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Thu dịch vụ ròng", "Thu nhập ròng từ hoạt động Ngân hàng số", "Dư nợ tín dụng TDH cuối kỳ", "Số lượng khách hàng tăng mới đăng ký dịch vụ Ibank có phát sinh giao dịch", "Dư nợ tín dụng cuối kỳ", "Phát triển KHTC mới hiệu quả", "Huy động vốn KKH bình quân", "Huy động vốn cuối kỳ", "Tỷ lệ nợ quá hạn/Tổng dư nợ", "Tỷ lệ nợ xấu gộp/Tổng dư nợ", "Thu nợ hạch toán ngoại bảng", "Thu kinh doanh ngoại tệ và phái sinh", "Thu bảo lãnh", "Huy động vốn bình quân", "Dư nợ tín dụng bình quân", "Kết quả các kỳ thi sát hạch và các khóa đào tạo, tập huấn", "Thu dịch vụ BHNT (BML)", "Số cán bộ vi phạm ý thức tổ chức kỷ luật", "Số lượng khách hàng TCKT mới quan hệ tín dụng"], "KHƯT": ["Thu nhập ròng (không gồm thu nợ HTNB, thu KDNT&PS và lãi dự thu nhóm 1 quá hạn)", "Hoa hồng bảo hiểm (Bic, Metlife)", "Thu phí sản phẩm đầu tư", "Huy động vốn KKH bình quân", "Số lượng thẻ tín dụng mới có phát sinh giao dịch", "Huy động vốn cuối kỳ", "Dư nợ tín dụng cuối kỳ", "Số lượng khách hàng cao cấp lũy kế", "Số lượng khách hàng nâng hạng lên KHCC hạng Premier Elite trở lên", "Mức độ hài lòng của khách hàng bên ngoài", "Tỷ lệ nợ quá hạn/Tổng dư nợ", "Tỷ lệ nợ xấu gộp/Tổng dư nợ", "Huy động vốn bình quân", "Dư nợ tín dụng bình quân", "Thu nợ hạch toán ngoại bảng", "Dư nợ tín dụng TDH cuối kỳ ", "Kết quả các kỳ thi sát hạch và các khóa đào tạo, tập huấn", "Số lượng KHCN mới có quan hệ tín dụng mới", "Thu dịch vụ BHNT (BML)", "Vượt giới hạn dư nợ cầm cố/thấu chi tiền gửi giấy tờ có giá", "Số cán bộ vi phạm ý thức tổ chức kỷ luật"]};  // {maBCT:[chiTieu,...]}
+const D_PB  = {"CẨM BÌNH": "PGD", "CẨM PHÚ": "PGD", "CẨM THỦY": "PGD", "KHCN": "KHCN", "KHDN": "KHDN", "KHƯT": "KHƯT", "MÔNG DƯƠNG": "PGD", "QUANG HANH": "PGD", "VÂN ĐỒN": "PGD"};   // {phong:maBCT}
+
+// ═══════════════════════════════════════════════════
+// FIREBASE — dữ liệu được load & sync qua <script type="module"> ở trên
+// ═══════════════════════════════════════════════════
+// Biến toàn cục — được gán bởi module Firebase sau khi load xong
+var CB=[], VT={}, BSC={}, PB={}, PG=[];  // var = window.CB etc (shared with Firebase module)
+// Save functions — delegate sang window.sXX được gán bởi Firebase module
+function sCB(){ if(window._sCB) window._sCB(); }
+function sVT(){ if(window._sVT) window._sVT(); }
+function sBSC(){ if(window._sBSC) window._sBSC(); }
+function sPB(){ if(window._sPB) window._sPB(); }
+function sPG(){ if(window._sPG) window._sPG(); }
+
+// ═══════════════════════════════════════════════════
+// AUTH & USERS
+// ═══════════════════════════════════════════════════
+const D_USERS=[{un:'admin',hn:'Quản trị viên',pw:'admin123',role:'admin',phong:'',act:1}];
+var USERS = JSON.parse(JSON.stringify(D_USERS));
+function sUsers(){ if(window._sUsers) window._sUsers(); }
+let CU = null; // current user object
+
+const isAdmin  = () => CU && CU.role === 'admin';
+const isTruong = () => CU && CU.role === 'truong';
+const isCBRole = () => CU && CU.role === 'cb';
+
+// Permissions per feature
+const can = {
+  editBoCT:      () => isAdmin(),           // sửa bộ chỉ tiêu KPI/BSC
+  taoKPI:        () => isAdmin() || isTruong(), // giao KPI
+  taoBSC:        () => isAdmin(),           // giao BSC
+  duyetKPI:      () => isTruong() || isAdmin(),
+  duyetBSC:      () => isAdmin(),
+  boDuyetKPI:    () => isAdmin(),
+  boDuyetBSC:    () => isAdmin(),
+  xoaPG:         (p) => (p.status !== 'approved') && (isAdmin() || isTruong()),
+  suaPG:         (p) => (p.status !== 'approved') && (isAdmin() || isTruong()),
+  quanLyUser:    () => isAdmin(),
+  importExcel:   () => isAdmin(),
+};
+
+function doLogin(){
+  const un=(document.getElementById('liU').value||'').trim();
+  const pw=document.getElementById('liP').value||'';
+  if(!un) return;
+  const u=USERS.find(x=>x.un===un && x.pw===pw && x.act);
+  if(!u){
+    const e=document.getElementById('loginErr');
+    e.style.display='block'; setTimeout(()=>e.style.display='none',3000); return;
+  }
+  CU={un:u.un,hn:u.hn,role:u.role,phong:u.phong||''};
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('mainApp').style.display='flex';
+  applyPermissions();
+  updBadges(); renderDash();
+}
+
+function openChangePass(){
+  document.getElementById('cpOld').value='';
+  document.getElementById('cpNew').value='';
+  document.getElementById('cpCfm').value='';
+  document.getElementById('chpassAlert').innerHTML='';
+  openM('ov-chpass');
+  setTimeout(()=>document.getElementById('cpOld').focus(),120);
+}
+
+function doChangePass(){
+  const old=document.getElementById('cpOld').value;
+  const nw =document.getElementById('cpNew').value.trim();
+  const cfm=document.getElementById('cpCfm').value.trim();
+  const alertEl=document.getElementById('chpassAlert');
+  const showErr=(msg)=>{alertEl.innerHTML=`<div class="alert a-err">${msg}</div>`;};
+  const showOk =(msg)=>{alertEl.innerHTML=`<div class="alert a-ok">${msg}</div>`;};
+
+  if(!old||!nw||!cfm){showErr('Vui lòng điền đầy đủ các trường!');return;}
+  if(!CU||CU.pw!==old){showErr('Mật khẩu hiện tại không đúng!');return;}
+  if(nw.length<6){showErr('Mật khẩu mới phải có ít nhất 6 ký tự!');return;}
+  if(nw!==cfm){showErr('Xác nhận mật khẩu không khớp!');return;}
+  if(nw===old){showErr('Mật khẩu mới phải khác mật khẩu hiện tại!');return;}
+
+  // Cập nhật trong USERS array
+  const idx=USERS.findIndex(x=>x.un===CU.un);
+  if(idx>=0){ USERS[idx].pw=nw; CU.pw=nw; }
+  window.sUsers();
+
+  showOk('✅ Đổi mật khẩu thành công!');
+  document.getElementById('cpOld').value='';
+  document.getElementById('cpNew').value='';
+  document.getElementById('cpCfm').value='';
+  setTimeout(()=>closeM('ov-chpass'),1500);
+}
+
+function doLogout(){
+  CU=null;
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('loginWrap').style.display='flex';
+  document.getElementById('liU').value='';
+  document.getElementById('liP').value='';
+}
+
+// Map: role → list of visible nav section keys
+const NAV_ALLOW = {
+  admin:  ['dash','kpi','bsc','tao','ds','pb','cb','users','imp','exp'],
+  truong: ['dash','tao','ds','cb','exp'],
+  cb:     ['dash','ds'],
+};
+
+function applyPermissions(){
+  if(!CU) return;
+  // Sidebar user info
+  const roleLabel = {admin:'<span class="role-tag rt-admin">🔴 Admin</span>',truong:'<span class="role-tag rt-truong">🔵 Trưởng ĐV</span>',cb:'<span class="role-tag rt-cb">🟢 Cán bộ</span>'};
+  document.getElementById('sbUN').textContent  = CU.hn;
+  document.getElementById('sbRole').innerHTML  = roleLabel[CU.role]||'';
+  // Show/hide nav items
+  const allowed = NAV_ALLOW[CU.role] || [];
+  document.querySelectorAll('.sb-a[data-s]').forEach(el=>{
+    el.style.display = allowed.includes(el.dataset.s) ? '' : 'none';
+  });
+  // Update download button label for truong
+  const dlBtn = document.getElementById('btnDlSamplePG');
+  if(dlBtn){
+    dlBtn.textContent = (isTruong()&&CU.phong)
+      ? `⬇ Xuất file import KPI — ${CU.phong}`
+      : '⬇ Tải file mẫu (.xlsx)';
+    dlBtn.title = (isTruong()&&CU.phong)
+      ? `Xuất file Excel điền sẵn cán bộ + chỉ tiêu KPI phòng ${CU.phong}`
+      : 'Tải file mẫu import phân giao';
+  }
+  // Topbar button: trưởng/admin thấy nút tạo PG, cb ẩn
+  const topBtn = document.getElementById('topNewPG');
+  if(topBtn) topBtn.style.display = (isAdmin()||isTruong()) ? '' : 'none';
+}
+
+// ═══════════════════════════════════════════════════
+// USER CRUD
+// ═══════════════════════════════════════════════════
+function renderUsers(){
+  const q = (document.getElementById('uSQ')||{value:''}).value||'';
+  const list = USERS.filter(u=>!q||has(u.hn,q)||has(u.un,q));
+  if(document.getElementById('uCnt')) document.getElementById('uCnt').textContent=list.length+' tài khoản';
+  const rl={admin:'<span class="role-tag rt-admin">🔴 Admin</span>',truong:'<span class="role-tag rt-truong">🔵 Trưởng ĐV</span>',cb:'<span class="role-tag rt-cb">🟢 Cán bộ</span>'};
+  document.getElementById('uTb').innerHTML=list.length?list.map((u,i)=>`
+    <tr>
+      <td style="color:#8fa3b8;font-size:11px">${i+1}</td>
+      <td><b style="font-family:monospace">${u.un}</b></td>
+      <td>${u.hn}</td>
+      <td>${rl[u.role]||u.role}</td>
+      <td>${u.phong?`<span class="ph">${u.phong}</span>`:'<span style="color:#8fa3b8">—</span>'}</td>
+      <td><span style="font-size:10.5px;padding:2px 8px;border-radius:10px;font-weight:700;background:${u.act?'#e0f5f3':'#fdecea'};color:${u.act?'#005452':'#c0392b'}">${u.act?'Hoạt động':'Khóa'}</span></td>
+      <td><div style="display:flex;gap:3px">
+        <button class="btn btn-gray btn-xs" onclick="editUser('${esc(u.un)}')">✏️</button>
+        ${u.un!=='admin'?`<button class="btn btn-red btn-xs" onclick="delUser('${esc(u.un)}')">🗑</button>`:''}
+      </div></td>
+    </tr>`).join(''):'<tr><td colspan="7"><div class="empty">Chưa có tài khoản</div></td></tr>';
+}
+
+function openAddUser(){
+  document.getElementById('uMod_tt').textContent='Thêm tài khoản';
+  document.getElementById('uMod_un').value=''; document.getElementById('uMod_un').disabled=false;
+  document.getElementById('uMod_hn').value=''; document.getElementById('uMod_pw').value='';
+  document.getElementById('uMod_role').value=''; document.getElementById('uMod_act').value='1';
+  document.getElementById('uMod_old').value=''; document.getElementById('uMod_pr').textContent='*';
+  _fillPhongSel(''); document.getElementById('uMod_phWrap').style.display='none';
+  openM('ov-user');
+}
+function editUser(un){
+  const u=USERS.find(x=>x.un===un); if(!u)return;
+  document.getElementById('uMod_tt').textContent='Sửa tài khoản';
+  document.getElementById('uMod_un').value=u.un; document.getElementById('uMod_un').disabled=true;
+  document.getElementById('uMod_hn').value=u.hn; document.getElementById('uMod_pw').value='';
+  document.getElementById('uMod_role').value=u.role; document.getElementById('uMod_act').value=u.act?'1':'0';
+  document.getElementById('uMod_old').value=u.un; document.getElementById('uMod_pr').textContent='';
+  _fillPhongSel(u.phong||'');
+  document.getElementById('uMod_phWrap').style.display=(u.role==='truong'||u.role==='cb')?'':'none';
+  openM('ov-user');
+}
+function _fillPhongSel(sel){
+  const opts=Object.keys(PB).sort().map(p=>`<option value="${p}"${p===sel?' selected':''}>${p}</option>`).join('');
+  document.getElementById('uMod_ph').innerHTML='<option value="">-- Chọn phòng --</option>'+opts;
+}
+function onUMRoleChange(){
+  const r=document.getElementById('uMod_role').value;
+  document.getElementById('uMod_phWrap').style.display=(r==='truong'||r==='cb')?'':'none';
+}
+function saveUser(){
+  const un=document.getElementById('uMod_un').value.trim();
+  const hn=document.getElementById('uMod_hn').value.trim();
+  const pw=document.getElementById('uMod_pw').value;
+  const role=document.getElementById('uMod_role').value;
+  const phong=document.getElementById('uMod_ph').value;
+  const act=document.getElementById('uMod_act').value==='1';
+  const old=document.getElementById('uMod_old').value;
+  if(!un||!hn||!role){alert('Vui lòng điền đầy đủ thông tin bắt buộc!');return;}
+  if((role==='truong'||role==='cb')&&!phong){alert('Vui lòng chọn phòng ban!');return;}
+  if(!old&&!pw){alert('Vui lòng nhập mật khẩu!');return;}
+  if(!old&&USERS.find(x=>x.un===un)){alert('Username đã tồn tại!');return;}
+  if(old){
+    const idx=USERS.findIndex(x=>x.un===old);
+    if(idx>=0){Object.assign(USERS[idx],{hn,role,phong,act});if(pw)USERS[idx].pw=pw;}
+  } else {
+    USERS.push({un,hn,pw,role,phong,act});
+  }
+  sUsers(); renderUsers(); closeM('ov-user');
+}
+function delUser(un){
+  if(un==='admin'){alert('Không thể xóa tài khoản admin!');return;}
+  if(!confirm(`Xóa tài khoản "${un}"?`))return;
+  USERS=USERS.filter(x=>x.un!==un); sUsers(); renderUsers();
+}
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const vna=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const has=(s,q)=>vna(s).includes(vna(q));
+const fN=v=>{if(v===''||v===null||v===undefined)return'—';const n=Number(String(v).replace(/[^0-9.-]/g,''));if(isNaN(n))return String(v);if(Math.abs(n)>=1e9)return(n/1e9).toFixed(3)+'B';if(Math.abs(n)>=1e6)return(n/1e6).toFixed(3)+'M';return n.toLocaleString('vi-VN');};
+
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+const NT={dash:'Dashboard',kpi:'Chỉ tiêu KPI',bsc:'Chỉ tiêu BSC',tao:'Tạo phân giao',ds:'Danh sách phân giao',cb:'Cán bộ',pb:'Phòng ban',users:'Quản lý User',imp:'Import Excel',exp:'Xuất dữ liệu'};
+const NS={dash:'Tổng quan hệ thống',kpi:'Chỉ tiêu theo vị trí',bsc:'Chỉ tiêu theo mã BCT',tao:'Phân giao số kế hoạch cụ thể',ds:'Lịch sử phân giao',cb:'Danh sách cán bộ AM',pb:'Danh sách phòng ban / PGD',users:'Tạo & phân quyền tài khoản',imp:'Import từ file Excel',exp:'Xuất Excel phân giao & bộ chỉ tiêu'};
+
+function go(el){
+  const s=el.dataset.s; if(!s)return;
+  document.querySelectorAll('.sb-a').forEach(a=>a.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.sec').forEach(x=>x.classList.remove('show'));
+  document.getElementById('sec-'+s).classList.add('show');
+  document.getElementById('topT').textContent=NT[s]||s;
+  document.getElementById('topS').textContent=NS[s]||'';
+  ({dash:renderDash,kpi:renderKPI,bsc:renderBSC,ds:renderDS,cb:renderCB,pb:renderPB,users:renderUsers,exp:renderExpPreview}[s]||function(){})();
+}
+
+function openM(id){document.getElementById(id).classList.add('show');}
+function closeM(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.ov').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show');}));
+
+function updBadges(){
+  const vtN=Object.keys(VT).length, bscN=Object.keys(BSC).length;
+  document.getElementById('bKPI').textContent=vtN;
+  document.getElementById('bBSC').textContent=bscN;
+  document.getElementById('bPG').textContent=PG.length;
+  document.getElementById('bPB').textContent=Object.keys(PB).length;
+  document.getElementById('kCS').textContent=vtN+' vị trí';
+  document.getElementById('bCS').textContent=bscN+' mã BCT';
+}
+
+// ═══════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════
+function renderDash(){
+  const totKPI=Object.values(VT).reduce((a,v)=>a+v.length,0);
+  const totBSC=Object.values(BSC).reduce((a,v)=>a+v.length,0);
+  document.getElementById('statRow').innerHTML=`
+    <div class="stat"><div class="stat-v" style="color:#006B68">${CB.length}</div><div class="stat-l">👤 Cán bộ AM</div></div>
+    <div class="stat"><div class="stat-v" style="color:#006B68">${totKPI}</div><div class="stat-l">🎯 Chỉ tiêu KPI</div></div>
+    <div class="stat"><div class="stat-v" style="color:#005452">${totBSC}</div><div class="stat-l">📐 Chỉ tiêu BSC</div></div>
+    <div class="stat" style="border-left:4px solid #FFC62F"><div class="stat-v" style="color:#FFC62F">${PG.length}</div><div class="stat-l">📨 Lượt phân giao</div></div>`;
+  const recent=[...PG].reverse().slice(0,8);
+  document.getElementById('pgRecent').innerHTML=recent.length?recent.map(p=>`
+    <tr class="row-c" onclick="viewPG('${p.id}')">
+      <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.targetSub||''}</small></td>
+      <td><span class="badge ${p.boCT==='KPI'?'bk':'bb'}">${p.boCT}</span></td>
+      <td><span class="${p.boCT==='KPI'?'vt':'ph'}">${p.targetKey}</span></td>
+      <td>${p.ctCount}</td>
+      <td style="font-size:11px;color:${p.khCount?'#006B68':'#8fa3b8'}">${p.khCount||0}/${p.ctCount}</td>
+      <td>${p.nguoiGiao||'—'}</td><td style="font-size:11px">${p.ky||''}</td>
+      <td style="font-size:11px">${p.ngayGiao||''}</td>
+      <td><button class="btn btn-gray btn-xs" onclick="event.stopPropagation();viewPG('${p.id}')">👁</button></td>
+    </tr>`).join(''):'<tr><td colspan="9"><div class="empty">📭<p>Chưa có phân giao</p></div></td></tr>';
+  document.getElementById('vtStat').innerHTML=Object.entries(VT).map(([vt,cts])=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f0f4f8">
+      <span class="vt">${vt}</span><span style="color:#445566">${cts.length} CT</span></div>`).join('');
+  document.getElementById('bscStat').innerHTML=Object.entries(BSC).map(([m,cts])=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f0f4f8">
+      <span class="ph">${m}</span><span style="color:#445566">${cts.length} CT</span></div>`).join('');
+  // Cập nhật badge chưa phân giao
+  _updateChuaPGBadge();
+}
+
+function _updateChuaPGBadge(){
+  try {
+    const daGiao = new Set(PG.filter(p=>p.boCT==='KPI').map(p=>p.target));
+    const chuaCB = CB.filter(x=>x.trangThai==='HOAT_DONG'&&!daGiao.has(x.tenCB)).length;
+    const daGiaoB = new Set(PG.filter(p=>p.boCT==='BSC').map(p=>p.target));
+    const chuaPB = Object.keys(PB).filter(ph=>!daGiaoB.has(ph)).length;
+    const total = chuaCB + (isAdmin()?chuaPB:0);
+    const el = document.getElementById('chuaPGBadge');
+    if(el){ el.textContent=total; el.style.display=total?'':'none'; }
+  } catch(e){}
+}
+
+// ═══════════════════════════════════════════════════
+// DASHBOARD TABS
+// ═══════════════════════════════════════════════════
+let _dashTab = 1;
+function switchDashTab(n) {
+  _dashTab = n;
+  document.getElementById('dashTabC1').style.display = n===1 ? '' : 'none';
+  document.getElementById('dashTabC2').style.display = n===2 ? '' : 'none';
+  const t1 = document.getElementById('dashTab1');
+  const t2 = document.getElementById('dashTab2');
+  t1.style.color      = n===1 ? '#006B68' : '#8fa3b8';
+  t1.style.borderBottom = n===1 ? '3px solid #006B68' : '3px solid transparent';
+  t2.style.color      = n===2 ? '#006B68' : '#8fa3b8';
+  t2.style.borderBottom = n===2 ? '3px solid #006B68' : '3px solid transparent';
+  if (n===2) renderChuaPG();
+}
+
+function renderChuaPG() {
+  const q   = (document.getElementById('chuaKPISQ')||{value:''}).value||'';
+  const ph  = (document.getElementById('chuaKPIPh')||{value:''}).value||'';
+  const ky  = (document.getElementById('chuaKyF')||{value:''}).value||'';
+
+  // -- Populate phong filter --
+  const allPhong = [...new Set(CB.map(c=>c.phong))].sort();
+  const phEl = document.getElementById('chuaKPIPh');
+  if(phEl){
+    const cur=phEl.value;
+    phEl.innerHTML='<option value="">Tất cả phòng</option>'+allPhong.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+  }
+
+  // -- Populate ky filter từ PG --
+  const allKy = [...new Set(PG.map(p=>p.ky).filter(Boolean))].sort();
+  const kyEl = document.getElementById('chuaKyF');
+  if(kyEl){
+    const cur=kyEl.value;
+    kyEl.innerHTML='<option value="">Tất cả kỳ</option>'+allKy.map(k=>`<option value="${k}"${k===cur?' selected':''}>${k}</option>`).join('');
+  }
+
+  // -- Cán bộ đã được phân giao KPI (lọc theo kỳ nếu chọn) --
+  const pgKPI = PG.filter(p=>p.boCT==='KPI'&&(!ky||p.ky===ky));
+  const daGiaoNames = new Set(pgKPI.map(p=>p.target));
+
+  // -- Cán bộ CHƯA được phân giao KPI --
+  let chuaCB = CB.filter(c=>
+    c.trangThai==='HOAT_DONG' &&
+    !daGiaoNames.has(c.tenCB) &&
+    (!q  || has(c.tenCB,q)||has(c.maCB,q)) &&
+    (!ph || c.phong===ph)
+  );
+
+  // Trưởng/CB chỉ thấy phòng mình
+  if(isTruong()||isCBRole()) chuaCB = chuaCB.filter(x=>x.phong===CU.phong);
+
+  document.getElementById('chuaKPICnt').textContent = chuaCB.length + ' cán bộ';
+  document.getElementById('chuaKPITb').innerHTML = chuaCB.length
+    ? chuaCB.map((cb,i)=>`
+      <tr>
+        <td style="color:#8fa3b8;font-size:11px">${i+1}</td>
+        <td><strong>${cb.tenCB}</strong><br><small style="font-family:monospace;font-size:10px;color:#8fa3b8">${cb.maCB}</small></td>
+        <td><span class="ph">${cb.phong}</span></td>
+        <td><span class="vt">${cb.viTri}</span></td>
+        <td>
+          ${(isAdmin()||isTruong())
+            ? `<button class="btn btn-blue btn-xs" onclick="goGiaoKPI('${esc(cb.maCB)}','${esc(cb.tenCB)}','${esc(cb.phong)}','${esc(cb.viTri)}')">📨 Giao ngay</button>`
+            : '—'}
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="5"><div class="empty">✅ Tất cả cán bộ đã được phân giao!</div></td></tr>';
+
+  // -- Phòng ban chưa có BSC --
+  const pgBSC = PG.filter(p=>p.boCT==='BSC'&&(!ky||p.ky===ky));
+  const daGiaoPhong = new Set(pgBSC.map(p=>p.target));
+  const chuaPhong = Object.entries(PB).filter(([ph])=>!daGiaoPhong.has(ph));
+  document.getElementById('chuaBSCCnt').textContent = chuaPhong.length + ' phòng';
+  document.getElementById('chuaBSCTb').innerHTML = chuaPhong.length
+    ? chuaPhong.map(([ph,maBCT],i)=>`
+      <tr>
+        <td style="color:#8fa3b8;font-size:11px">${i+1}</td>
+        <td><strong>${ph}</strong></td>
+        <td><span class="ph">${maBCT}</span></td>
+        <td>
+          ${isAdmin()
+            ? `<button class="btn btn-blue btn-xs" onclick="goGiaoBSC('${esc(ph)}','${esc(maBCT)}')">📨 Giao ngay</button>`
+            : '—'}
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="4"><div class="empty">✅ Tất cả phòng đã có BSC!</div></td></tr>';
+
+  // -- Badge tổng --
+  const total = chuaCB.length + (isAdmin() ? chuaPhong.length : 0);
+  document.getElementById('chuaPGBadge').textContent = total;
+  document.getElementById('chuaPGBadge').style.display = total ? '' : 'none';
+
+  // -- Thống kê theo kỳ --
+  const kyStatEl = document.getElementById('kyStatC');
+  if(allKy.length===0){
+    kyStatEl.innerHTML='<div style="color:#8fa3b8;text-align:center;padding:8px">Chưa có phân giao nào</div>';
+    return;
+  }
+  // tính tỷ lệ hoàn thành theo từng kỳ
+  const activeCB = CB.filter(x=>x.trangThai==='HOAT_DONG').length;
+  const allPB    = Object.keys(PB).length;
+  kyStatEl.innerHTML = allKy.map(k=>{
+    const kpiDone = new Set(PG.filter(p=>p.boCT==='KPI'&&p.ky===k).map(p=>p.target)).size;
+    const bscDone = new Set(PG.filter(p=>p.boCT==='BSC'&&p.ky===k).map(p=>p.target)).size;
+    const kpiPct  = activeCB>0 ? Math.round(kpiDone/activeCB*100) : 0;
+    const bscPct  = allPB>0    ? Math.round(bscDone/allPB*100)    : 0;
+    return `
+      <div style="margin-bottom:10px">
+        <div style="font-size:11.5px;font-weight:700;color:#0f1f30;margin-bottom:5px">${k}</div>
+        <div style="font-size:11px;color:#445566;margin-bottom:3px">KPI: ${kpiDone}/${activeCB} cán bộ
+          <div style="background:#edf1f7;border-radius:4px;height:6px;margin-top:2px">
+            <div style="background:#006B68;height:6px;border-radius:4px;width:${kpiPct}%"></div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#445566">BSC: ${bscDone}/${allPB} phòng
+          <div style="background:#edf1f7;border-radius:4px;height:6px;margin-top:2px">
+            <div style="background:#FFC62F;height:6px;border-radius:4px;width:${bscPct}%"></div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Nút "Giao ngay" từ tab Chưa phân giao → chuyển sang wizard với cán bộ đã chọn sẵn
+function goGiaoKPI(maCB, tenCB, phong, viTri) {
+  go(document.querySelector('[data-s=tao]'));
+  switchTaoTab(1);
+  // Pre-select KPI và target
+  setTimeout(()=>{
+    pickBC('KPI');
+    wzNext(1);
+    setTimeout(()=>{
+      pickTargetKPI(maCB, tenCB, phong, viTri);
+      wzNext(2);
+    }, 80);
+  }, 80);
+}
+function goGiaoBSC(phong, maBCT) {
+  go(document.querySelector('[data-s=tao]'));
+  switchTaoTab(1);
+  setTimeout(()=>{
+    pickBC('BSC');
+    wzNext(1);
+    setTimeout(()=>{
+      pickTargetBSC(phong, maBCT);
+      wzNext(2);
+    }, 80);
+  }, 80);
+}
+
+// ═══════════════════════════════════════════════════
+// KPI / BSC VIEW
+// ═══════════════════════════════════════════════════
+let kpiPg=1,bscPg=1;
+
+function renderKPI(){
+  const q=document.getElementById('kpiSQ').value||'';
+  const vt=document.getElementById('kpiVTF').value||'';
+  const vts=Object.keys(VT);
+  const el=document.getElementById('kpiVTF'),cur=el.value;
+  el.innerHTML='<option value="">Tất cả vị trí</option>'+vts.map(v=>`<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');
+  let rows=[];
+  Object.entries(VT).forEach(([v,cts])=>{
+    if(vt&&v!==vt)return;
+    cts.forEach((ct,i)=>{if(!q||has(ct,q))rows.push({viTri:v,chiTieu:ct,idx:i});});
+  });
+  document.getElementById('kpiCnt').textContent=rows.length+' chỉ tiêu';
+  const pages=Math.max(1,Math.ceil(rows.length/30));
+  if(kpiPg>pages)kpiPg=1;
+  const sl=rows.slice((kpiPg-1)*30,kpiPg*30);
+  const startN=(kpiPg-1)*30;
+  document.getElementById('kpiTb').innerHTML=sl.length?sl.map((r,i)=>`
+    <tr><td style="color:#8fa3b8;font-size:11px">${startN+i+1}</td>
+    <td><span class="vt">${r.viTri}</span></td><td>${r.chiTieu}</td>
+    <td><div style="display:flex;gap:3px">
+      <button class="btn btn-gray btn-xs" title="Sửa" onclick="editKPI('${esc(r.viTri)}',${r.idx})">✏️</button>
+      <button class="btn btn-red btn-xs" title="Xóa" onclick="delKPI('${esc(r.viTri)}',${r.idx})">🗑</button>
+    </div></td></tr>`).join('')
+    :'<tr><td colspan="4"><div class="empty">Không có dữ liệu</div></td></tr>';
+  renderPag('kpiPag',pages,kpiPg,p=>{kpiPg=p;renderKPI();});
+}
+
+function renderBSC(){
+  const q=document.getElementById('bscSQ').value||'';
+  const mf=document.getElementById('bscMF').value||'';
+  const ms=Object.keys(BSC);
+  const el=document.getElementById('bscMF'),cur=el.value;
+  el.innerHTML='<option value="">Tất cả mã BCT</option>'+ms.map(m=>`<option value="${m}"${m===cur?' selected':''}>${m}</option>`).join('');
+  let rows=[];
+  Object.entries(BSC).forEach(([m,cts])=>{
+    if(mf&&m!==mf)return;
+    cts.forEach((ct,i)=>{if(!q||has(ct,q))rows.push({maBCT:m,chiTieu:ct});});
+  });
+  document.getElementById('bscCnt').textContent=rows.length+' chỉ tiêu';
+  const pages=Math.max(1,Math.ceil(rows.length/30));
+  if(bscPg>pages)bscPg=1;
+  const sl=rows.slice((bscPg-1)*30,bscPg*30);
+  const startN=(bscPg-1)*30;
+  document.getElementById('bscTb').innerHTML=sl.length?sl.map((r,i)=>`
+    <tr><td style="color:#8fa3b8;font-size:11px">${startN+i+1}</td>
+    <td><span class="ph">${r.maBCT}</span></td><td>${r.chiTieu}</td>
+    <td><div style="display:flex;gap:3px">
+      <button class="btn btn-gray btn-xs" title="Sửa" onclick="editBSC('${esc(r.maBCT)}',${i+(bscPg-1)*30})">✏️</button>
+      <button class="btn btn-red btn-xs" title="Xóa" onclick="delBSC('${esc(r.maBCT)}',${i+(bscPg-1)*30})">🗑</button>
+    </div></td></tr>`).join('')
+    :'<tr><td colspan="4"><div class="empty">Không có dữ liệu</div></td></tr>';
+  renderPag('bscPag',pages,bscPg,p=>{bscPg=p;renderBSC();});
+}
+
+// ═══════════════════════════════════════════════════
+// WIZARD PHÂN GIAO
+// ═══════════════════════════════════════════════════
+let WZ={boCT:null,target:null,targetName:'',targetSub:'',targetKey:'',ctList:[],vals:[]};
+
+function pickBC(t){
+  if(t==='BSC'&&isTruong()){alert('Trưởng đơn vị chỉ được giao chỉ tiêu KPI!');return;}
+  WZ.boCT=t;
+  document.getElementById('boK').className='boco'+(t==='KPI'?' sk':'');
+  document.getElementById('boB').className='boco'+(t==='BSC'?' sb':'');
+  document.getElementById('ckK').textContent=t==='KPI'?'✓':'';
+  document.getElementById('ckB').textContent=t==='BSC'?'✓':'';
+  document.getElementById('btnW1').disabled=false;
+}
+
+function wzStep(n){
+  [1,2,3,4].forEach(i=>{
+    document.getElementById('ws'+i).className='wst'+(i<n?' done':i===n?' cur':'');
+  });
+  [1,2,3].forEach(i=>document.getElementById('wl'+i).className='wln'+(i<n?' done':''));
+}
+
+function wzNext(step){
+  if(step===1){
+    if(!WZ.boCT)return;
+    document.getElementById('wz1').style.display='none';
+    document.getElementById('wz2').style.display='';
+    document.getElementById('wz2T').textContent=WZ.boCT==='KPI'?'Bước 2 · Chọn cán bộ AM':'Bước 2 · Chọn phòng / PGD';
+    document.getElementById('wzSQ').value='';
+    WZ.target=null; document.getElementById('btnW2').disabled=true;
+    wzStep(2); renderTargets();
+  } else if(step===2){
+    if(!WZ.target){alert('Vui lòng chọn cán bộ / phòng!');return;}
+    document.getElementById('wz2').style.display='none';
+    document.getElementById('wz3').style.display='';
+    wzStep(3); buildStep3();
+  } else if(step===3){
+    // Thu thập giá trị nhập
+    const isBSC3=WZ.boCT==='BSC';
+    WZ.vals=WZ.ctList.map((ct,i)=>{
+      const base={
+        chiTieu:ct,
+        soKH:document.getElementById('v_'+i).value.trim(),
+        donVi:document.getElementById('u_'+i).value.trim(),
+        ghiChu:document.getElementById('n_'+i).value.trim()
+      };
+      if(isBSC3){
+        base.khoiBanBuon=(document.getElementById('bb_'+i)||{value:''}).value.trim();
+        base.khoiBanLe=(document.getElementById('bl_'+i)||{value:''}).value.trim();
+      }
+      return base;
+    });
+    document.getElementById('wz3').style.display='none';
+    document.getElementById('wz4').style.display='';
+    wzStep(4); buildStep4();
+  }
+}
+
+function wzBack(step){
+  const map={2:['wz2','wz1'],3:['wz3','wz2'],4:['wz4','wz3']};
+  if(!map[step])return;
+  document.getElementById(map[step][0]).style.display='none';
+  document.getElementById(map[step][1]).style.display='';
+  wzStep(step-1);
+}
+
+function renderTargets(){
+  const q=document.getElementById('wzSQ').value||'';
+  let html='';
+  if(WZ.boCT==='KPI'){
+    let list=CB.filter(c=>!q||has(c.tenCB,q)||has(c.maCB,q)||has(c.phong,q)||has(c.viTri,q));
+    // Trưởng chỉ thấy cán bộ thuộc phòng mình
+    if(isTruong()) list=list.filter(c=>c.phong===CU.phong);
+    const byPh={};
+    list.forEach(c=>{if(!byPh[c.phong])byPh[c.phong]=[];byPh[c.phong].push(c);});
+    if(!Object.keys(byPh).length){html='<div class="empty">Không tìm thấy</div>';}
+    else html=Object.entries(byPh).map(([ph,cbs])=>`
+      <div style="padding:5px 14px 3px;background:#f4f7fb;border-bottom:1px solid #e4eaf2">
+        <span class="ph">${ph}</span>
+      </div>
+      ${cbs.map(c=>{
+        const sel=WZ.target===c.maCB;
+        const ctN=(VT[c.viTri]||[]).length;
+        return `<div class="tp${sel?' sel':''}" onclick="pickTargetKPI('${esc(c.maCB)}','${esc(c.tenCB)}','${esc(c.phong)}','${esc(c.viTri)}')">
+          <div class="tp-av" style="background:${sel?'#006B68':'#e0f5f3'};color:${sel?'#fff':'#006B68'}">${c.tenCB.charAt(0)}</div>
+          <div style="flex:1">
+            <div class="tp-nm">${c.tenCB}</div>
+            <div class="tp-sb">${c.maCB} · <span class="vt" style="font-size:10px">${c.viTri}</span> · ${ctN} chỉ tiêu</div>
+          </div>
+          ${sel?'<span style="color:#006B68;font-size:18px;font-weight:700">✓</span>':''}
+        </div>`;
+      }).join('')}`).join('');
+  } else {
+    const list=Object.entries(PB).filter(([ph])=>!q||has(ph,q));
+    if(!list.length){html='<div class="empty">Không tìm thấy</div>';}
+    else html=list.map(([ph,maBCT])=>{
+      const sel=WZ.target===ph;
+      const ctN=(BSC[maBCT]||[]).length;
+      return `<div class="tp${sel?' sel':''}" onclick="pickTargetBSC('${esc(ph)}','${esc(maBCT)}')">
+        <div class="tp-av" style="background:${sel?'#005452':'#e0f5f3'};color:${sel?'#fff':'#005452'};font-size:18px">🏢</div>
+        <div style="flex:1">
+          <div class="tp-nm">${ph}</div>
+          <div class="tp-sb">Mã BCT: <span class="ph" style="font-size:10px">${maBCT}</span> · ${ctN} chỉ tiêu</div>
+        </div>
+        ${sel?'<span style="color:#005452;font-size:18px;font-weight:700">✓</span>':''}
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('targetList').innerHTML=html;
+}
+
+function esc(s){return(s||'').replace(/'/g,"&#39;").replace(/"/g,'&quot;');}
+
+function pickTargetKPI(maCB,tenCB,phong,viTri){
+  WZ.target=maCB; WZ.targetName=tenCB; WZ.targetSub=phong;
+  WZ.targetKey=viTri; WZ.ctList=VT[viTri]||[];
+  document.getElementById('btnW2').disabled=false;
+  renderTargets();
+}
+function pickTargetBSC(phong,maBCT){
+  WZ.target=phong; WZ.targetName=phong; WZ.targetSub='Mã BCT: '+maBCT;
+  WZ.targetKey=maBCT; WZ.ctList=BSC[maBCT]||[];
+  document.getElementById('btnW2').disabled=false;
+  renderTargets();
+}
+
+function buildStep3(){
+  document.getElementById('wz3T').textContent='Bước 3 · Nhập số kế hoạch từng chỉ tiêu';
+  document.getElementById('wz3Sub').textContent=
+    (WZ.boCT==='KPI'?WZ.targetName+' · Vị trí: '+WZ.targetKey:WZ.targetName+' · Mã BCT: '+WZ.targetKey)
+    +' · '+WZ.ctList.length+' chỉ tiêu';
+  document.getElementById('defUnit').value='';
+  const isBSC = WZ.boCT==='BSC';
+  // Header cột
+  const thExtra = isBSC
+    ? `<th style="text-align:right;color:#005452">Khối Bán Buôn</th><th style="text-align:right;color:#005452">Khối Bán Lẻ</th><th style="text-align:right;color:#006B68">Tổng giao</th>`
+    : `<th style="text-align:right">Số kế hoạch</th>`;
+  document.getElementById('wz3Head').innerHTML=`<tr><th>#</th><th>Tên chỉ tiêu</th>${thExtra}<th>Đơn vị</th><th>Ghi chú</th></tr>`;
+  document.getElementById('wz3Tb').innerHTML=WZ.ctList.map((ct,i)=>{
+    const inputCols = isBSC ? `
+      <td><input type="text" class="bi" id="bb_${i}" placeholder="0" autocomplete="off" inputmode="decimal" oninput="calcTong(${i})"></td>
+      <td><input type="text" class="bi" id="bl_${i}" placeholder="0" autocomplete="off" inputmode="decimal" oninput="calcTong(${i})"></td>
+      <td><input type="text" class="ti" id="v_${i}" readonly tabindex="-1" placeholder="—"></td>`
+    : `<td><input type="text" class="vi" id="v_${i}" placeholder="Nhập số..." autocomplete="off" inputmode="decimal"></td>`;
+    return `<tr>
+      <td style="color:#8fa3b8;font-size:11px">${i+1}</td>
+      <td style="font-size:12.5px;max-width:260px">${ct}</td>
+      ${inputCols}
+      <td><input type="text" class="ui" id="u_${i}" placeholder="Đơn vị" autocomplete="off"></td>
+      <td><input type="text" class="ni" id="n_${i}" placeholder="Ghi chú" autocomplete="off"></td>
+    </tr>`;
+  }).join('');
+  // Focus first input
+  setTimeout(()=>{const el=document.getElementById(isBSC?'bb_0':'v_0');if(el)el.focus();},100);
+}
+
+function calcTong(i){
+  const bb=parseFloat((document.getElementById('bb_'+i)||{value:''}).value.replace(/,/g,'.'))||0;
+  const bl=parseFloat((document.getElementById('bl_'+i)||{value:''}).value.replace(/,/g,'.'))||0;
+  const tong=bb+bl;
+  const el=document.getElementById('v_'+i);
+  if(el) el.value = tong>0 ? tong.toLocaleString('vi-VN') : '';
+}
+
+function applyUnit(){
+  const unit=document.getElementById('defUnit').value.trim();
+  if(!unit)return;
+  WZ.ctList.forEach((_,i)=>{const el=document.getElementById('u_'+i);if(el&&!el.value)el.value=unit;});
+}
+function clearVals(){
+  WZ.ctList.forEach((_,i)=>{
+    ['v_','u_','n_'].forEach(p=>{const el=document.getElementById(p+i);if(el)el.value='';});
+  });
+}
+
+function buildStep4(){
+  document.getElementById('wz4N').textContent=WZ.vals.length+' chỉ tiêu';
+  const khCnt=WZ.vals.filter(v=>v.soKH).length;
+  const isBSC4=WZ.boCT==='BSC';
+  if(isBSC4){
+    document.getElementById('wz4HeadR').innerHTML='<th style="text-align:right;color:#005452">Bán Buôn</th><th style="text-align:right;color:#005452">Bán Lẻ</th><th style="text-align:right;color:#006B68;font-weight:800">Tổng giao</th>';
+  } else {
+    document.getElementById('wz4HeadR').innerHTML='<th style="text-align:right">Số kế hoạch</th>';
+  }
+  document.getElementById('wz4Tb').innerHTML=WZ.vals.map((v,i)=>{
+    const extraCols=isBSC4
+      ? `<td style="text-align:right;color:#445566;font-size:12px">${v.khoiBanBuon||'—'}</td>
+         <td style="text-align:right;color:#445566;font-size:12px">${v.khoiBanLe||'—'}</td>
+         <td style="text-align:right;font-weight:700;color:${v.soKH?'#006B68':'#8fa3b8'};font-size:13px">${v.soKH||'—'}</td>`
+      : `<td style="text-align:right;font-weight:700;color:${v.soKH?'#006B68':'#8fa3b8'}">${v.soKH||'—'}</td>`;
+    return `<tr>
+      <td style="color:#8fa3b8;font-size:11px">${i+1}</td>
+      <td style="font-size:12.5px;max-width:250px">${v.chiTieu}</td>
+      ${extraCols}
+      <td style="font-size:11.5px;color:#445566">${v.donVi||'—'}</td>
+      <td style="font-size:11px;color:#8fa3b8">${v.ghiChu||''}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('wzSumC').innerHTML=`
+    <div class="sum-r"><span class="sum-l">Bộ CT</span><span class="sum-v"><span style="background:rgba(255,255,255,.15);padding:1px 8px;border-radius:10px">${WZ.boCT}</span></span></div>
+    <div class="sum-r"><span class="sum-l">${WZ.boCT==='KPI'?'Cán bộ':'Phòng'}</span><span class="sum-v">${WZ.targetName}</span></div>
+    <div class="sum-r"><span class="sum-l">${WZ.boCT==='KPI'?'Vị trí':'Mã BCT'}</span><span class="sum-v">${WZ.targetKey}</span></div>
+    <div class="sum-r"><span class="sum-l">Tổng chỉ tiêu</span><span class="sum-v">${WZ.ctList.length}</span></div>
+    <div class="sum-r"><span class="sum-l">Đã nhập số KH</span><span class="sum-v" style="color:${khCnt===WZ.ctList.length?'#7bffb0':'#ffe082'}">${khCnt}/${WZ.ctList.length}</span></div>`;
+}
+
+function savePG(){
+  // Permission check
+  if(isTruong() && WZ.boCT==='BSC'){alert('Trưởng đơn vị chỉ có quyền giao chỉ tiêu KPI!');return;}
+  if(isCBRole()){alert('Cán bộ phòng không có quyền tạo phân giao!');return;}
+  const ng=document.getElementById('pgNG').value.trim();
+  if(!ng){alert('Vui lòng nhập tên người giao!');return;}
+  const khCnt=WZ.vals.filter(v=>v.soKH).length;
+  PG.push({
+    id:uid(), boCT:WZ.boCT,
+    target:WZ.targetName, targetKey:WZ.targetKey, targetSub:WZ.targetSub||'',
+    ctCount:WZ.ctList.length, khCount:khCnt,
+    items:JSON.parse(JSON.stringify(WZ.vals)),
+    nguoiGiao:ng, ky:document.getElementById('pgKy').value,
+    han:document.getElementById('pgHan').value,
+    ghiChu:document.getElementById('pgGC').value,
+    ngayGiao:new Date().toLocaleDateString('vi-VN'),
+    phongGiao: CU?CU.phong:'',
+    taoBy: CU?CU.un:'',
+    status:'pending', approvedBy:'', approvedAt:''
+  });
+  sPG(); updBadges();
+  WZ={boCT:null,target:null,targetName:'',targetSub:'',targetKey:'',ctList:[],vals:[]};
+  document.getElementById('wz4').style.display='none';
+  document.getElementById('wz1').style.display='';
+  wzStep(1);
+  ['boK','boB'].forEach(id=>document.getElementById(id).className='boco');
+  ['ckK','ckB'].forEach(id=>document.getElementById(id).textContent='');
+  document.getElementById('btnW1').disabled=true;
+  ['pgNG','pgGC','pgHan'].forEach(id=>document.getElementById(id).value='');
+  alert('✅ Phân giao thành công!');
+}
+
+// ═══════════════════════════════════════════════════
+// DANH SÁCH PG
+// ═══════════════════════════════════════════════════
+function renderDS(){
+  const q=document.getElementById('dsSQ').value||'';
+  const bo=document.getElementById('dsBo').value||'';
+  const ky=document.getElementById('dsKy').value||'';
+  const kys=[...new Set(PG.map(p=>p.ky).filter(Boolean))];
+  const kyEl=document.getElementById('dsKy'),curKy=kyEl.value;
+  kyEl.innerHTML='<option value="">Tất cả kỳ</option>'+kys.map(k=>`<option value="${k}"${k===curKy?' selected':''}>${k}</option>`).join('');
+  // Filter by role: Trưởng/CB chỉ thấy phòng mình
+  let list=PG.filter(p=>(!q||has(p.target,q)||has(p.nguoiGiao||'',q)||has(p.targetKey,q))&&(!bo||p.boCT===bo)&&(!ky||p.ky===ky));
+  if(isTruong()||isCBRole()){
+    list=list.filter(p=>_pgBelongsToPhong(p,CU.phong));
+  }
+  document.getElementById('dsCnt').textContent=list.length+' phân giao';
+  const stBadge=p=>p.status==='approved'
+    ?`<span class="ab ab-ok">✅ Đã duyệt</span>`
+    :`<span class="ab ab-pend">⏳ Chờ duyệt</span>`;
+  document.getElementById('dsTb').innerHTML=list.length?[...list].reverse().map(p=>{
+    const canDuyet=(p.boCT==='KPI'&&can.duyetKPI()&&p.status!=='approved')||(p.boCT==='BSC'&&can.duyetBSC()&&p.status!=='approved');
+    const canBoD=p.status==='approved'&&((p.boCT==='KPI'&&can.boDuyetKPI())||(p.boCT==='BSC'&&can.boDuyetBSC()));
+    const canXoa=can.xoaPG(p);
+    return`<tr class="row-c" onclick="viewPG('${p.id}')">
+      <td><span class="badge ${p.boCT==='KPI'?'bk':'bb'}">${p.boCT}</span></td>
+      <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.targetSub||''}</small></td>
+      <td><span class="${p.boCT==='KPI'?'vt':'ph'}">${p.targetKey}</span></td>
+      <td style="font-size:11.5px">${p.ky||'—'}</td>
+      <td>${p.ctCount}</td>
+      <td style="color:${p.khCount?'#006B68':'#8fa3b8'};font-size:12px">${p.khCount||0}/${p.ctCount}</td>
+      <td>${p.nguoiGiao||'—'}</td>
+      <td style="font-size:11px">${p.ngayGiao||''}</td>
+      <td>${stBadge(p)}</td>
+      <td><div style="display:flex;gap:3px;flex-wrap:nowrap">
+        <button class="btn btn-gray btn-xs" onclick="event.stopPropagation();viewPG('${p.id}')">👁</button>
+        ${canDuyet?`<button class="btn btn-green btn-xs" title="Duyệt" onclick="event.stopPropagation();duyetPG('${p.id}')">✅</button>`:''}
+        ${canBoD?`<button class="btn btn-gold btn-xs" title="Bỏ duyệt" onclick="event.stopPropagation();boDuyetPG('${p.id}')">↩</button>`:''}
+        ${canXoa?`<button class="btn btn-red btn-xs" onclick="event.stopPropagation();delPG('${p.id}')">🗑</button>`:''}
+      </div></td>
+    </tr>`;}).join(''):'<tr><td colspan="10"><div class="empty">📭<p>Chưa có phân giao</p></div></td></tr>';
+}
+
+function _pgBelongsToPhong(p,phong){
+  if(!phong)return true;
+  if(p.phongGiao===phong)return true;
+  if(p.boCT==='KPI'){const c=CB.find(x=>x.tenCB===p.target);return c&&c.phong===phong;}
+  return p.target===phong;
+}
+
+function duyetPG(id){
+  const p=PG.find(x=>x.id===id);if(!p)return;
+  if(p.boCT==='KPI'&&!can.duyetKPI()){alert('Không có quyền duyệt KPI!');return;}
+  if(p.boCT==='BSC'&&!can.duyetBSC()){alert('Chỉ Admin mới được duyệt BSC!');return;}
+  if(isTruong()&&!_pgBelongsToPhong(p,CU.phong)){alert('Chỉ duyệt phân giao thuộc phòng mình!');return;}
+  p.status='approved'; p.approvedBy=CU.hn; p.approvedAt=new Date().toLocaleDateString('vi-VN');
+  sPG(); renderDS();
+}
+
+function boDuyetPG(id){
+  if(!isAdmin()){alert('Chỉ Admin mới có quyền bỏ duyệt!');return;}
+  if(!confirm('Bỏ duyệt phân giao này?'))return;
+  const p=PG.find(x=>x.id===id);if(!p)return;
+  p.status='pending'; p.approvedBy=''; p.approvedAt='';
+  sPG(); renderDS();
+}
+
+function viewPG(id){
+  const p=PG.find(x=>x.id===id); if(!p)return;
+  const stBadge=p.status==='approved'
+    ?`<span class="ab ab-ok">✅ Đã duyệt · ${p.approvedBy||''} · ${p.approvedAt||''}</span>`
+    :`<span class="ab ab-pend">⏳ Chờ duyệt</span>`;
+  document.getElementById('mPGT').textContent=`${p.boCT} · ${p.target} · ${p.targetKey}`;
+  document.getElementById('mPGB').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;background:#f4f7fb;border-radius:10px;padding:14px;margin-bottom:16px">
+      <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Bộ CT</div>
+        <div style="margin-top:3px"><span class="badge ${p.boCT==='KPI'?'bk':'bb'}">${p.boCT}</span></div></div>
+      <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">${p.boCT==='KPI'?'Cán bộ':'Phòng'}</div>
+        <div style="font-weight:700;margin-top:3px">${p.target}</div></div>
+      <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">${p.boCT==='KPI'?'Vị trí':'Mã BCT'}</div>
+        <div style="margin-top:3px"><span class="${p.boCT==='KPI'?'vt':'ph'}">${p.targetKey}</span></div></div>
+      <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Người giao</div>
+        <div style="font-weight:700;margin-top:3px">${p.nguoiGiao||'—'}</div></div>
+      <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Kỳ đánh giá</div>
+        <div style="margin-top:3px">${p.ky||'—'}</div></div>
+      <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Hạn / Ngày lập</div>
+        <div style="font-size:12px;margin-top:3px">${p.han||'—'} · ${p.ngayGiao||''}</div></div>
+      <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Tổng CT</div>
+        <div style="font-size:22px;font-weight:800;color:#006B68;margin-top:2px">${p.ctCount}</div></div>
+      <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Đã nhập số KH</div>
+        <div style="font-size:22px;font-weight:800;color:${p.khCount===p.ctCount?'#005452':'#8a5e00'};margin-top:2px">${p.khCount||0}/${p.ctCount}</div></div>
+      <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Trạng thái</div>
+        <div style="margin-top:4px">${stBadge}</div></div>
+    </div>
+    ${p.ghiChu?`<div style="background:#fef8e7;border:1px solid #f0d080;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12.5px"><strong>📝 Ghi chú:</strong> ${p.ghiChu}</div>`:''}
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Tên chỉ tiêu</th>${p.boCT==='BSC'?'<th style="text-align:right;color:#005452">Bán Buôn</th><th style="text-align:right;color:#005452">Bán Lẻ</th>':''}<th style="text-align:right">Tổng/Số KH</th><th>Đơn vị</th><th>Ghi chú CT</th></tr></thead>
+      <tbody>${(p.items||[]).map((v,i)=>`
+        <tr>
+          <td style="color:#8fa3b8;font-size:11px">${i+1}</td>
+          <td style="font-size:12.5px">${v.chiTieu}</td>
+          ${p.boCT==='BSC'?`<td style="text-align:right;font-size:12px;color:#445566">${v.khoiBanBuon||'—'}</td><td style="text-align:right;font-size:12px;color:#445566">${v.khoiBanLe||'—'}</td>`:''}
+          <td style="text-align:right;font-weight:700;color:${v.soKH?'#006B68':'#8fa3b8'};font-size:13px">${v.soKH||'—'}</td>
+          <td style="font-size:11.5px;color:#445566">${v.donVi||'—'}</td>
+          <td style="font-size:11px;color:#8fa3b8">${v.ghiChu||''}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>`;
+  // Action buttons
+  const canDuyet=(p.boCT==='KPI'&&can.duyetKPI()&&p.status!=='approved')||(p.boCT==='BSC'&&can.duyetBSC()&&p.status!=='approved');
+  const canBoD=p.status==='approved'&&((p.boCT==='KPI'&&can.boDuyetKPI())||(p.boCT==='BSC'&&can.boDuyetBSC()));
+  document.getElementById('mDuyet').style.display=canDuyet?'':'none';
+  document.getElementById('mBoduyet').style.display=canBoD?'':'none';
+  document.getElementById('mDuyet').onclick=()=>{duyetPG(id);closeM('ov-pg');renderDS();};
+  document.getElementById('mBoduyet').onclick=()=>{boDuyetPG(id);closeM('ov-pg');renderDS();};
+  document.getElementById('mDel').style.display=can.xoaPG(p)?'':'none';
+  document.getElementById('mDel').onclick=()=>{
+    if(p.status==='approved'){alert('Phân giao đã duyệt! Yêu cầu Admin bỏ duyệt trước.');return;}
+    if(confirm('Xóa phân giao này?')){delPG(id);closeM('ov-pg');}
+  };
+  document.getElementById('mExp').onclick=()=>exportSinglePG(id);
+  openM('ov-pg');
+}
+
+function delPG(id){
+  const p=PG.find(x=>x.id===id);
+  if(p&&p.status==='approved'&&!isAdmin()){alert('Phân giao đã duyệt, không thể xóa!');return;}
+  PG=PG.filter(p=>p.id!==id);sPG();updBadges();
+  if(document.getElementById('sec-ds').classList.contains('show'))renderDS();
+  renderDash();
+}
+
+// ═══════════════════════════════════════════════════
+// CÁN BỘ
+// ═══════════════════════════════════════════════════
+let cbPg=1;
+function renderCB(){
+  const q=document.getElementById('cbSQ').value||'';
+  const vt=document.getElementById('cbVTF').value||'';
+  const ph=document.getElementById('cbPhF').value||'';
+  const vts=[...new Set(CB.map(c=>c.viTri))].sort();
+  // Phong filter: truong/cb chỉ thấy phòng mình
+  const phFilter=isTruong()||isCBRole()?CU.phong:'';
+  const phs=phFilter?[phFilter]:[...new Set(CB.map(c=>c.phong))].sort();
+  const vtEl=document.getElementById('cbVTF'),cvt=vtEl.value;
+  vtEl.innerHTML='<option value="">Tất cả vị trí</option>'+vts.map(v=>`<option value="${v}"${v===cvt?' selected':''}>${v}</option>`).join('');
+  const phEl=document.getElementById('cbPhF'),cph=phEl.value;
+  phEl.innerHTML='<option value="">Tất cả phòng</option>'+phs.map(p=>`<option value="${p}"${p===cph?' selected':''}>${p}</option>`).join('');
+  let list=CB.filter(c=>(!q||has(c.tenCB,q)||has(c.maCB,q))&&(!vt||c.viTri===vt)&&(!ph||c.phong===ph));
+  if(phFilter) list=list.filter(c=>c.phong===phFilter);
+  document.getElementById('cbCnt').textContent=list.length+' cán bộ';
+  const pages=Math.max(1,Math.ceil(list.length/20));
+  if(cbPg>pages)cbPg=1;
+  const sl=list.slice((cbPg-1)*20,cbPg*20);
+  document.getElementById('cbTb').innerHTML=sl.length?sl.map(c=>{
+    const ctN=(VT[c.viTri]||[]).length;
+    const pgN=PG.filter(p=>p.boCT==='KPI'&&p.target===c.tenCB).length;
+    return `<tr>
+      <td><span style="font-family:monospace;font-size:10.5px;background:#eef2f7;padding:2px 5px;border-radius:4px">${c.maCB}</span></td>
+      <td><span style="font-family:monospace;font-size:10.5px;background:#e0f5f3;color:#005452;padding:2px 5px;border-radius:4px">${c.maAM||'—'}</span></td>
+      <td><strong>${c.tenCB}</strong></td>
+      <td><span class="ph">${c.phong}</span></td>
+      <td><span class="vt">${c.viTri}</span></td>
+      <td><span style="font-size:10.5px;padding:2px 7px;border-radius:10px;font-weight:700;background:${c.trangThai==='HOAT_DONG'?'#e0f5f3':'#fdecea'};color:${c.trangThai==='HOAT_DONG'?'#005452':'#c0392b'}">${c.trangThai}</span></td>
+      <td>${ctN} CT</td>
+      <td>${pgN?`<span style="color:#006B68;font-weight:700">${pgN}</span>`:'—'}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="8"><div class="empty">Không có cán bộ</div></td></tr>';
+  renderPag('cbPag',pages,cbPg,p=>{cbPg=p;renderCB();});
+}
+
+// ═══════════════════════════════════════════════════
+// PAGINATOR
+// ═══════════════════════════════════════════════════
+function renderPag(id,pages,cur,fn){
+  const el=document.getElementById(id);if(!el||pages<=1){if(el)el.innerHTML='';return;}
+  const s=Math.max(1,cur-2),e=Math.min(pages,cur+2);
+  let h=`<span style="font-size:11px;color:#8fa3b8;margin-right:4px">Trang ${cur}/${pages}</span>`;
+  if(s>1)h+=`<button class="pb" onclick="(${fn.toString()})(1)">1</button>`+(s>2?'<span style="color:#8fa3b8">…</span>':'');
+  for(let p=s;p<=e;p++)h+=`<button class="pb${p===cur?' on':''}" onclick="(${fn.toString()})(${p})">${p}</button>`;
+  if(e<pages)h+=(e<pages-1?'<span style="color:#8fa3b8">…</span>':'')+`<button class="pb" onclick="(${fn.toString()})(${pages})">${pages}</button>`;
+  el.innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════
+// IMPORT
+// ═══════════════════════════════════════════════════
+function dze(e){e.preventDefault();e.currentTarget.style.borderColor='#006B68';}
+function dze2(e){e.currentTarget.style.borderColor='#d5dfe8';}
+function dropF(e){e.preventDefault();dze2(e);const f=e.dataTransfer.files[0];if(f)importFile(f);}
+function doImport(inp){if(inp.files[0])importFile(inp.files[0]);inp.value='';}
+
+function importFile(file){
+  document.getElementById('impAlert').innerHTML='<div class="alert a-inf">⏳ Đang xử lý...</div>';
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      // KPI
+      const wsK=wb.Sheets['KPI']||wb.Sheets[wb.SheetNames[0]];
+      const kR=XLSX.utils.sheet_to_json(wsK,{header:1,defval:''});
+      const nCB={},nVT={};
+      for(let i=1;i<kR.length;i++){
+        const r=kR[i];
+        const maCB=String(r[0]||''),maAM=String(r[1]||''),tenCB=String(r[2]||''),
+              email=String(r[3]||''),phong=String(r[4]||''),viTri=String(r[5]||''),
+              vaiTro=String(r[6]||''),tt=String(r[7]||''),ct=String(r[8]||'');
+        if(!ct) continue;
+        if(maCB&&!nCB[maCB]) nCB[maCB]={maCB,maAM,tenCB,phong,viTri,trangThai:tt};
+        if(viTri){if(!nVT[viTri])nVT[viTri]=[];if(!nVT[viTri].includes(ct))nVT[viTri].push(ct);}
+      }
+      // BSC
+      const wsB=wb.Sheets['BSC']||(wb.SheetNames.length>1?wb.Sheets[wb.SheetNames[1]]:null);
+      const nBSC={};
+      if(wsB){
+        const bR=XLSX.utils.sheet_to_json(wsB,{header:1,defval:''});
+        for(let i=1;i<bR.length;i++){
+          const r=bR[i];
+          const m=String(r[0]||''),ct=String(r[1]||'');
+          if(!ct)continue;
+          if(!nBSC[m])nBSC[m]=[];
+          if(!nBSC[m].includes(ct))nBSC[m].push(ct);
+        }
+      }
+      // phong -> bct
+      const nPB={};
+      const bscKeys=Object.keys(nBSC);
+      Object.values(nCB).forEach(c=>{
+        if(!nPB[c.phong]) nPB[c.phong]=bscKeys.includes(c.phong)?c.phong:(bscKeys.find(k=>k==='PGD')||bscKeys[0]||'PGD');
+      });
+      CB=Object.values(nCB); VT=nVT; BSC=nBSC; PB=nPB;
+      sCB();sVT();sBSC();sPB();updBadges();renderDash();
+      document.getElementById('impAlert').innerHTML=`<div class="alert a-ok">✅ Import thành công: ${CB.length} cán bộ · ${Object.keys(VT).length} vị trí KPI · ${Object.keys(BSC).length} mã BSC.</div>`;
+    }catch(err){
+      document.getElementById('impAlert').innerHTML=`<div class="alert a-err">❌ Lỗi: ${err.message}</div>`;
+    }
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function resetDef(){
+  if(!confirm('Khôi phục dữ liệu mặc định?'))return;
+  CB=JSON.parse(JSON.stringify(D_CB)); VT=JSON.parse(JSON.stringify(D_VT));
+  BSC=JSON.parse(JSON.stringify(D_BSC)); PB=JSON.parse(JSON.stringify(D_PB));
+  sCB();sVT();sBSC();sPB();updBadges();renderDash();alert('✅ Đã khôi phục!');
+}
+function clearAllPG(){
+  if(!confirm('Xóa tất cả phân giao?'))return;
+  PG=[];sPG();updBadges();renderDash();alert('✅ Đã xóa!');
+}
+
+// ═══════════════════════════════════════════════════
+// SAMPLE FILE DOWNLOAD
+// ═══════════════════════════════════════════════════
+function downloadSample(){
+  const wb=XLSX.utils.book_new();
+  // Sheet KPI
+  const kpiRows=[['MA_CB','MA_AM','TEN_CB','EMAIL','PHONG','VI_TRI','VAI_TRO','TRANG THAI','CHI TIEU']];
+  CB.forEach(c=>{
+    const cts=VT[c.viTri]||[];
+    cts.forEach(ct=>kpiRows.push([c.maCB,c.maAM,c.tenCB,'',c.phong,c.viTri,'CAN_BO',c.trangThai||'HOAT_DONG',ct]));
+  });
+  const wsK=XLSX.utils.aoa_to_sheet(kpiRows);
+  wsK['!cols']=[8,10,20,22,14,12,10,12,50].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,wsK,'KPI');
+  // Sheet BSC
+  const bscRows=[['MÃ BCT','CHỈ TIÊU']];
+  Object.entries(BSC).forEach(([m,cts])=>cts.forEach(ct=>bscRows.push([m,ct])));
+  const wsB=XLSX.utils.aoa_to_sheet(bscRows);
+  wsB['!cols']=[{wch:10},{wch:60}];
+  XLSX.utils.book_append_sheet(wb,wsB,'BSC');
+  XLSX.writeFile(wb,'BO_CHI_TIEU_KH_MAU.xlsx');
+}
+
+// ═══════════════════════════════════════════════════
+// EXPORT PHÂN GIAO
+// ═══════════════════════════════════════════════════
+function getExpList(){
+  const bo=document.getElementById('expBo')?document.getElementById('expBo').value:'';
+  const ky=document.getElementById('expKy')?document.getElementById('expKy').value:'';
+  return PG.filter(p=>(!bo||p.boCT===bo)&&(!ky||p.ky===ky));
+}
+
+function renderExpPreview(){
+  const list=getExpList();
+  document.getElementById('expPrev').textContent=list.length+' phân giao';
+  // populate ky
+  const kys=[...new Set(PG.map(p=>p.ky).filter(Boolean))];
+  const kyEl=document.getElementById('expKy');
+  if(kyEl){const cur=kyEl.value;kyEl.innerHTML='<option value="">Tất cả kỳ</option>'+kys.map(k=>`<option value="${k}"${k===cur?' selected':''}>${k}</option>`).join('');}
+  document.getElementById('expTb').innerHTML=list.length?list.map(p=>`
+    <tr>
+      <td><span class="badge ${p.boCT==='KPI'?'bk':'bb'}">${p.boCT}</span></td>
+      <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.targetSub||''}</small></td>
+      <td><span class="${p.boCT==='KPI'?'vt':'ph'}">${p.targetKey}</span></td>
+      <td style="font-size:11.5px">${p.ky||'—'}</td>
+      <td>${p.ctCount}</td>
+      <td style="color:${p.khCount?'#006B68':'#8fa3b8'}">${p.khCount||0}/${p.ctCount}</td>
+      <td>${p.nguoiGiao||'—'}</td>
+      <td style="font-size:11px">${p.ngayGiao||''}</td>
+    </tr>`).join(''):'<tr><td colspan="8"><div class="empty">Không có dữ liệu</div></td></tr>';
+}
+
+function exportPGExcel(){
+  const list=getExpList();
+  if(!list.length){alert('Không có dữ liệu để xuất!');return;}
+  const fmt=document.querySelector('input[name="expFmt"]:checked').value;
+  const wb=XLSX.utils.book_new();
+  if(fmt==='summary'){
+    // Sheet 1: Tóm tắt
+    const rows=[['Bộ CT','Cán bộ / Phòng','Phòng / Mã BCT phụ','Vị trí / Mã BCT','Kỳ đánh giá','Số CT','Đã nhập KH','Người giao','Hạn','Ngày lập','Ghi chú']];
+    list.forEach(p=>rows.push([p.boCT,p.target,p.targetSub||'',p.targetKey,p.ky||'',p.ctCount,p.khCount||0,p.nguoiGiao||'',p.han||'',p.ngayGiao||'',p.ghiChu||'']));
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[6,22,20,12,14,7,8,18,12,12,30].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,ws,'Tóm tắt phân giao');
+  } else {
+    // Sheet chi tiết: mỗi hàng = 1 chỉ tiêu
+    const rows=[['Bộ CT','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ đánh giá','Người giao','Ngày lập','STT CT','Tên chỉ tiêu','Khối Bán Buôn','Khối Bán Lẻ','Tổng/Số KH','Đơn vị','Ghi chú CT']];
+    list.forEach(p=>{
+      (p.items||[]).forEach((v,i)=>{
+        if(p.boCT==='BSC'){
+          rows.push([p.boCT,p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.ngayGiao||'',i+1,v.chiTieu,v.khoiBanBuon||'',v.khoiBanLe||'',v.soKH||'',v.donVi||'',v.ghiChu||'']);
+        } else {
+          rows.push([p.boCT,p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.ngayGiao||'',i+1,v.chiTieu,'','',v.soKH||'',v.donVi||'',v.ghiChu||'']);
+        }
+      });
+    });
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[6,22,12,14,18,12,6,50,14,14,16,14,25].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,ws,'Chi tiết phân giao');
+    // Sheet tóm tắt kèm theo
+    const rows2=[['Bộ CT','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ','Số CT','Đã nhập KH','Người giao','Ngày lập']];
+    list.forEach(p=>rows2.push([p.boCT,p.target,p.targetKey,p.ky||'',p.ctCount,p.khCount||0,p.nguoiGiao||'',p.ngayGiao||'']));
+    const ws2=XLSX.utils.aoa_to_sheet(rows2);
+    ws2['!cols']=[6,22,12,14,7,8,18,12].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,ws2,'Tóm tắt');
+  }
+  const d=new Date().toLocaleDateString('vi-VN').replace(/\//g,'-');
+  XLSX.writeFile(wb,`PhanGiao_${d}.xlsx`);
+}
+
+function exportAllPG(){
+  if(!PG.length){alert('Chưa có phân giao nào!');return;}
+  exportFullDetail(PG,'PhanGiao_TatCa');
+}
+
+function exportFilteredPG(){
+  const q=document.getElementById('dsSQ').value||'';
+  const bo=document.getElementById('dsBo').value||'';
+  const ky=document.getElementById('dsKy').value||'';
+  const list=PG.filter(p=>(!q||has(p.target,q)||has(p.nguoiGiao||'',q)||has(p.targetKey,q))&&(!bo||p.boCT===bo)&&(!ky||p.ky===ky));
+  if(!list.length){alert('Không có dữ liệu!');return;}
+  exportFullDetail(list,'PhanGiao_LocFilter');
+}
+
+function exportFullDetail(list,fname){
+  const wb=XLSX.utils.book_new();
+  // Sheet chi tiết
+  const rows=[['Bộ CT','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ đánh giá','Người giao','Hạn HT','Ngày lập','STT','Tên chỉ tiêu','Khối Bán Buôn','Khối Bán Lẻ','Tổng/Số KH','Đơn vị','Ghi chú CT']];
+  list.forEach(p=>{
+    (p.items||[]).forEach((v,i)=>{
+      if(p.boCT==='BSC'){rows.push([p.boCT,p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.han||'',p.ngayGiao||'',i+1,v.chiTieu,v.khoiBanBuon||'',v.khoiBanLe||'',v.soKH||'',v.donVi||'',v.ghiChu||'']);}
+      else{rows.push([p.boCT,p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.han||'',p.ngayGiao||'',i+1,v.chiTieu,'','',v.soKH||'',v.donVi||'',v.ghiChu||'']);}
+    });
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[6,22,12,14,18,12,12,5,52,15,14,25].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws,'Chi tiết');
+  // Sheet tóm tắt
+  const rows2=[['Bộ CT','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ','Số CT','Đã nhập KH','Người giao','Hạn HT','Ngày lập','Ghi chú']];
+  list.forEach(p=>rows2.push([p.boCT,p.target,p.targetKey,p.ky||'',p.ctCount,p.khCount||0,p.nguoiGiao||'',p.han||'',p.ngayGiao||'',p.ghiChu||'']));
+  const ws2=XLSX.utils.aoa_to_sheet(rows2);
+  ws2['!cols']=[6,22,12,14,6,8,18,12,12,30].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws2,'Tóm tắt');
+  const d=new Date().toLocaleDateString('vi-VN').replace(/\//g,'-');
+  XLSX.writeFile(wb,`${fname}_${d}.xlsx`);
+}
+
+function exportSinglePG(id){
+  const p=PG.find(x=>x.id===id); if(!p)return;
+  const wb=XLSX.utils.book_new();
+  // Header info
+  const info=[
+    ['PHÂN GIAO CHỈ TIÊU','','',''],
+    ['Bộ chỉ tiêu:',p.boCT,'',''],
+    [p.boCT==='KPI'?'Cán bộ:':'Phòng:',p.target,'Vị trí / Mã BCT:',p.targetKey],
+    ['Kỳ đánh giá:',p.ky||'','Người giao:',p.nguoiGiao||''],
+    ['Hạn hoàn thành:',p.han||'','Ngày lập:',p.ngayGiao||''],
+    ['Ghi chú:',p.ghiChu||'','',''],
+    ['','','',''],
+    ['STT','Tên chỉ tiêu','Số kế hoạch','Đơn vị','Ghi chú']
+  ];
+  (p.items||[]).forEach((v,i)=>info.push([i+1,v.chiTieu,v.soKH||'',v.donVi||'',v.ghiChu||'']));
+  const ws=XLSX.utils.aoa_to_sheet(info);
+  ws['!cols']=[{wch:5},{wch:55},{wch:16},{wch:14},{wch:25}];
+  // Bold header row
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:4}}];
+  XLSX.utils.book_append_sheet(wb,ws,'Phân giao');
+  const safe=(s)=>(s||'').replace(/[/\\?*\[\]]/g,'_').slice(0,20);
+  XLSX.writeFile(wb,`PG_${safe(p.boCT)}_${safe(p.target)}_${safe(p.ky)}.xlsx`);
+}
+
+function exportBoCT(){
+  const wb=XLSX.utils.book_new();
+  const kpiRows=[['VI_TRI','CHI TIEU']];
+  Object.entries(VT).forEach(([vt,cts])=>cts.forEach(ct=>kpiRows.push([vt,ct])));
+  const wsK=XLSX.utils.aoa_to_sheet(kpiRows);
+  wsK['!cols']=[{wch:14},{wch:60}];
+  XLSX.utils.book_append_sheet(wb,wsK,'KPI_VI_TRI');
+  const bscRows=[['MÃ BCT','CHỈ TIÊU']];
+  Object.entries(BSC).forEach(([m,cts])=>cts.forEach(ct=>bscRows.push([m,ct])));
+  const wsB=XLSX.utils.aoa_to_sheet(bscRows);
+  wsB['!cols']=[{wch:10},{wch:60}];
+  XLSX.utils.book_append_sheet(wb,wsB,'BSC');
+  XLSX.writeFile(wb,'BoCT_HienTai.xlsx');
+}
+
+// ═══════════════════════════════════════════════════
+// PHÒNG BAN CRUD
+// ═══════════════════════════════════════════════════
+function renderPB(){
+  const q=document.getElementById('pbSQ').value||'';
+  const list=Object.entries(PB).filter(([ph])=>!q||has(ph,q));
+  document.getElementById('pbCnt').textContent=list.length+' phòng';
+  document.getElementById('pbTb').innerHTML=list.length?list.map(([ph,maBCT],i)=>`
+    <tr>
+      <td style="color:#8fa3b8;font-size:11px">${i+1}</td>
+      <td><strong>${ph}</strong></td>
+      <td><span class="ph">${maBCT}</span></td>
+      <td><div style="display:flex;gap:3px">
+        <button class="btn btn-gray btn-xs" onclick="editPB('${esc(ph)}')">✏️</button>
+        <button class="btn btn-red btn-xs" onclick="delPB('${esc(ph)}')">🗑</button>
+      </div></td>
+    </tr>`).join(''):'<tr><td colspan="4"><div class="empty">Không có phòng ban</div></td></tr>';
+}
+function openAddPB(){
+  document.getElementById('pbMod_title').textContent='Thêm phòng ban mới';
+  document.getElementById('pbMod_ph').value='';
+  document.getElementById('pbMod_phOld').value='';
+  document.getElementById('pbMod_bct').value='';
+  // populate bct options
+  const opts=Object.keys(BSC).map(m=>`<option value="${m}">${m}</option>`).join('');
+  document.getElementById('pbMod_bct').innerHTML='<option value="">-- Chọn mã BCT --</option>'+opts;
+  openM('ov-pb');
+}
+function editPB(ph){
+  document.getElementById('pbMod_title').textContent='Sửa phòng ban';
+  document.getElementById('pbMod_ph').value=ph;
+  document.getElementById('pbMod_phOld').value=ph;
+  const opts=Object.keys(BSC).map(m=>`<option value="${m}"${PB[ph]===m?' selected':''}>${m}</option>`).join('');
+  document.getElementById('pbMod_bct').innerHTML='<option value="">-- Chọn mã BCT --</option>'+opts;
+  openM('ov-pb');
+}
+function savePB(){
+  const ph=document.getElementById('pbMod_ph').value.trim();
+  const phOld=document.getElementById('pbMod_phOld').value;
+  const maBCT=document.getElementById('pbMod_bct').value;
+  if(!ph){alert('Vui lòng nhập tên phòng!');return;}
+  if(!maBCT){alert('Vui lòng chọn mã BCT!');return;}
+  if(phOld&&phOld!==ph)delete PB[phOld];
+  PB[ph]=maBCT;
+  sPB();updBadges();renderPB();closeM('ov-pb');
+}
+function delPB(ph){
+  if(!confirm(`Xóa phòng "${ph}"?`))return;
+  delete PB[ph]; sPB();updBadges();renderPB();
+}
+
+// ═══════════════════════════════════════════════════
+// KPI CRUD
+// ═══════════════════════════════════════════════════
+function openAddVT(){
+  document.getElementById('vtMod_title').textContent='Thêm vị trí mới';
+  document.getElementById('vtMod_name').value='';
+  openM('ov-vt');
+}
+function saveVT(){
+  const name=document.getElementById('vtMod_name').value.trim();
+  if(!name){alert('Vui lòng nhập tên vị trí!');return;}
+  if(VT[name]){alert('Vị trí này đã tồn tại!');return;}
+  VT[name]=[];sVT();updBadges();renderKPI();closeM('ov-vt');
+}
+function openAddKPI(){
+  document.getElementById('kpiMod_title').textContent='Thêm chỉ tiêu KPI';
+  document.getElementById('kpiMod_ct').value='';
+  document.getElementById('kpiMod_oldCt').value='';
+  const vts=Object.keys(VT);
+  document.getElementById('kpiMod_vt').innerHTML='<option value="">-- Chọn vị trí --</option>'+vts.map(v=>`<option value="${v}">${v}</option>`).join('');
+  openM('ov-kpimod');
+}
+function editKPI(viTri,idx){
+  const ct=VT[viTri][idx];
+  document.getElementById('kpiMod_title').textContent='Sửa chỉ tiêu KPI';
+  const vts=Object.keys(VT);
+  document.getElementById('kpiMod_vt').innerHTML='<option value="">-- Chọn vị trí --</option>'+vts.map(v=>`<option value="${v}"${v===viTri?' selected':''}>${v}</option>`).join('');
+  document.getElementById('kpiMod_ct').value=ct;
+  document.getElementById('kpiMod_oldCt').value=viTri+'|'+idx;
+  openM('ov-kpimod');
+}
+function saveKPIMod(){
+  const vt=document.getElementById('kpiMod_vt').value;
+  const ct=document.getElementById('kpiMod_ct').value.trim();
+  const oldKey=document.getElementById('kpiMod_oldCt').value;
+  if(!vt){alert('Vui lòng chọn vị trí!');return;}
+  if(!ct){alert('Vui lòng nhập tên chỉ tiêu!');return;}
+  if(oldKey){
+    const [oldVT,oldIdx]=oldKey.split('|');
+    VT[oldVT].splice(Number(oldIdx),1);
+  }
+  if(!VT[vt])VT[vt]=[];
+  if(!VT[vt].includes(ct))VT[vt].push(ct);
+  sVT();updBadges();renderKPI();closeM('ov-kpimod');
+}
+function delKPI(viTri,idx){
+  if(!confirm('Xóa chỉ tiêu này?'))return;
+  VT[viTri].splice(idx,1);
+  sVT();updBadges();renderKPI();
+}
+
+// ═══════════════════════════════════════════════════
+// BSC CRUD
+// ═══════════════════════════════════════════════════
+function openAddMaBCT(){
+  document.getElementById('maBCTMod_name').value='';
+  openM('ov-mabct');
+}
+function saveMaBCT(){
+  const name=document.getElementById('maBCTMod_name').value.trim();
+  if(!name){alert('Vui lòng nhập mã BCT!');return;}
+  if(BSC[name]){alert('Mã BCT này đã tồn tại!');return;}
+  BSC[name]=[];sBSC();updBadges();renderBSC();closeM('ov-mabct');
+}
+function openAddBSC(){
+  document.getElementById('bscMod_title').textContent='Thêm chỉ tiêu BSC';
+  document.getElementById('bscMod_ct').value='';
+  document.getElementById('bscMod_oldCt').value='';
+  const ms=Object.keys(BSC);
+  document.getElementById('bscMod_ma').innerHTML='<option value="">-- Chọn mã BCT --</option>'+ms.map(m=>`<option value="${m}">${m}</option>`).join('');
+  openM('ov-bscmod');
+}
+function editBSC(maBCT,absIdx){
+  // absIdx is global row index across all BSC entries
+  let cnt=0,foundMa=maBCT,foundIdx=0;
+  for(const [m,cts] of Object.entries(BSC)){
+    if(m===maBCT){
+      // find actual ct at absIdx within this maBCT's array
+      // absIdx was computed as i+(bscPg-1)*30 in filtered list, so we need raw index
+      break;
+    }
+  }
+  // Simpler: re-derive from current filtered list
+  const q=document.getElementById('bscSQ').value||'';
+  const mf=document.getElementById('bscMF').value||'';
+  let rows=[];
+  Object.entries(BSC).forEach(([m,cts])=>{
+    if(mf&&m!==mf)return;
+    cts.forEach((ct,i)=>{if(!q||has(ct,q))rows.push({maBCT:m,chiTieu:ct,rawIdx:i});});
+  });
+  const r=rows[absIdx]; if(!r)return;
+  document.getElementById('bscMod_title').textContent='Sửa chỉ tiêu BSC';
+  const ms=Object.keys(BSC);
+  document.getElementById('bscMod_ma').innerHTML='<option value="">-- Chọn mã BCT --</option>'+ms.map(m=>`<option value="${m}"${m===r.maBCT?' selected':''}>${m}</option>`).join('');
+  document.getElementById('bscMod_ct').value=r.chiTieu;
+  document.getElementById('bscMod_oldCt').value=r.maBCT+'|'+r.rawIdx;
+  openM('ov-bscmod');
+}
+function saveBSCMod(){
+  const ma=document.getElementById('bscMod_ma').value;
+  const ct=document.getElementById('bscMod_ct').value.trim();
+  const oldKey=document.getElementById('bscMod_oldCt').value;
+  if(!ma){alert('Vui lòng chọn mã BCT!');return;}
+  if(!ct){alert('Vui lòng nhập tên chỉ tiêu!');return;}
+  if(oldKey){
+    const [oldMa,oldIdx]=oldKey.split('|');
+    if(BSC[oldMa])BSC[oldMa].splice(Number(oldIdx),1);
+  }
+  if(!BSC[ma])BSC[ma]=[];
+  if(!BSC[ma].includes(ct))BSC[ma].push(ct);
+  sBSC();updBadges();renderBSC();closeM('ov-bscmod');
+}
+function delBSC(maBCT,absIdx){
+  if(!confirm('Xóa chỉ tiêu này?'))return;
+  const q=document.getElementById('bscSQ').value||'';
+  const mf=document.getElementById('bscMF').value||'';
+  let rows=[];
+  Object.entries(BSC).forEach(([m,cts])=>{
+    if(mf&&m!==mf)return;
+    cts.forEach((ct,i)=>{if(!q||has(ct,q))rows.push({maBCT:m,rawIdx:i});});
+  });
+  const r=rows[absIdx]; if(!r)return;
+  BSC[r.maBCT].splice(r.rawIdx,1);
+  sBSC();updBadges();renderBSC();
+}
+
+// ═══════════════════════════════════════════════════
+// TAO TAB SWITCH
+// ═══════════════════════════════════════════════════
+function switchTaoTab(n){
+  document.getElementById('taoTabC1').style.display=n===1?'':'none';
+  document.getElementById('taoTabC2').style.display=n===2?'':'none';
+  document.getElementById('taoTab1').className='btn btn-sm '+(n===1?'btn-blue':'btn-gray');
+  document.getElementById('taoTab2').className='btn btn-sm '+(n===2?'btn-blue':'btn-gray');
+  // reset alert when switching to import tab
+  if(n===2) document.getElementById('impPGAlert').innerHTML='';
+}
+
+// ═══════════════════════════════════════════════════
+// IMPORT PHÂN GIAO
+// ═══════════════════════════════════════════════════
+function dropFPG(e){e.preventDefault();dze2(e);const f=e.dataTransfer.files[0];if(f)importFilePG(f);}
+function doImportPG(inp){if(inp.files[0])importFilePG(inp.files[0]);inp.value='';}
+
+function importFilePG(file){
+  const alertEl=document.getElementById('impPGAlert');
+  alertEl.innerHTML='<div class="alert a-inf">⏳ Đang đọc file...</div>';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(rows.length<2){throw new Error('File không có dữ liệu (cần ít nhất 1 hàng dữ liệu sau hàng tiêu đề)!');}
+
+      // Group rows → phân giao. Key = boCT|cb|key2|ky
+      const pgMap=new Map();
+      let skipped=0;
+      for(let i=1;i<rows.length;i++){
+        const r=rows[i];
+        const boCT=String(r[0]||'').trim().toUpperCase();
+        const cb=String(r[1]||'').trim();
+        const key2=String(r[2]||'').trim();
+        const ky=String(r[3]||'').trim();
+        const ng=String(r[4]||'').trim();
+        const han=String(r[5]||'').trim();
+        const gc=String(r[6]||'').trim();
+        const ct=String(r[7]||'').trim();
+        const soKH=String(r[8]||'').trim();
+        const donVi=String(r[9]||'').trim();
+        const gcCT=String(r[10]||'').trim();
+
+        // bỏ qua hàng thiếu cột bắt buộc
+        if(!cb||!ct){skipped++;continue;}
+        const bo=(boCT==='KPI')?'KPI':'BSC';
+        const pgKey=`${bo}|${cb}|${key2}|${ky}`;
+        if(!pgMap.has(pgKey)){
+          pgMap.set(pgKey,{
+            id:uid(),boCT:bo,
+            target:cb,
+            targetKey:key2,
+            targetSub:bo==='BSC'?'Mã BCT: '+key2:(key2?'Vị trí: '+key2:''),
+            ky,nguoiGiao:ng,han,ghiChu:gc,
+            ngayGiao:new Date().toLocaleDateString('vi-VN'),
+            items:[]
+          });
+        }
+        pgMap.get(pgKey).items.push({chiTieu:ct,soKH,donVi,ghiChu:gcCT});
+      }
+
+      if(!pgMap.size){throw new Error('Không tìm thấy dữ liệu hợp lệ. Kiểm tra lại cột A (BO_CT), B (CAN_BO_PHONG) và H (CHI_TIEU) không được để trống!');}
+
+      const newPGs=[...pgMap.values()].map(p=>({
+        ...p,ctCount:p.items.length,khCount:p.items.filter(v=>v.soKH).length
+      }));
+
+      // Show preview
+      const prevRows=newPGs.slice(0,5).map(p=>`
+        <tr>
+          <td><span class="badge ${p.boCT==='KPI'?'bk':'bb'}">${p.boCT}</span></td>
+          <td><strong>${p.target}</strong></td>
+          <td><span class="${p.boCT==='KPI'?'vt':'ph'}">${p.targetKey||'—'}</span></td>
+          <td>${p.ky||'—'}</td>
+          <td>${p.ctCount}</td>
+          <td style="color:${p.khCount?'#006B68':'#8fa3b8'}">${p.khCount}/${p.ctCount}</td>
+          <td>${p.nguoiGiao||'—'}</td>
+        </tr>`).join('');
+      const more=newPGs.length>5?`<tr><td colspan="7" style="text-align:center;color:#8fa3b8;font-size:11px">... và ${newPGs.length-5} phân giao khác</td></tr>`:'';
+
+      alertEl.innerHTML=`
+        <div class="alert a-ok" style="margin-bottom:10px">
+          ✅ Đọc thành công <b>${newPGs.length} phân giao</b> · <b>${newPGs.reduce((s,p)=>s+p.ctCount,0)} chỉ tiêu</b>
+          ${skipped?` · <span style="color:#8a5e00">${skipped} hàng bị bỏ qua (thiếu dữ liệu)</span>`:''}
+        </div>
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-h"><div class="card-t">Xem trước (tối đa 5 dòng đầu)</div></div>
+          <div class="tw"><table>
+            <thead><tr><th>Bộ CT</th><th>Cán bộ/Phòng</th><th>Vị trí/Mã BCT</th><th>Kỳ</th><th>Số CT</th><th>Đã nhập KH</th><th>Người giao</th></tr></thead>
+            <tbody>${prevRows}${more}</tbody>
+          </table></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-green" onclick="confirmImportPG()">✅ Xác nhận lưu ${newPGs.length} phân giao</button>
+          <button class="btn btn-gray btn-sm" onclick="document.getElementById('impPGAlert').innerHTML='';_pendingPG=null">✖ Hủy</button>
+        </div>`;
+      window._pendingPG=newPGs;
+    }catch(err){
+      alertEl.innerHTML=`<div class="alert a-err">❌ Lỗi: ${err.message}</div>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function confirmImportPG(){
+  if(!window._pendingPG||!window._pendingPG.length)return;
+  const newPGs=window._pendingPG;
+  PG=[...PG,...newPGs];
+  sPG();updBadges();renderDash();
+  window._pendingPG=null;
+  document.getElementById('fImpPG').value='';
+  document.getElementById('impPGAlert').innerHTML=`<div class="alert a-ok">✅ Đã lưu thành công <b>${newPGs.length} phân giao</b>! <a href="#" onclick="event.preventDefault();go(document.querySelector('[data-s=ds]'))" style="color:#005452;font-weight:700">→ Xem danh sách phân giao</a></div>`;
+}
+
+function downloadSamplePG(){
+  const wb=XLSX.utils.book_new();
+  const header=['BO_CT','CAN_BO_PHONG','VI_TRI_MA_BCT','KY','NGUOI_GIAO','HAN','GHI_CHU','CHI_TIEU','SO_KH','DON_VI','GHI_CHU_CT'];
+
+  if(isTruong() && CU.phong){
+    // Xuất file điền sẵn cán bộ + chỉ tiêu KPI của phòng mình
+    const myPhong = CU.phong;
+    const myCB = CB.filter(c => c.phong === myPhong && c.trangThai === 'HOAT_DONG');
+    const rows = [header];
+
+    myCB.forEach(c => {
+      const ctList = VT[c.viTri] || [];
+      if(ctList.length === 0){
+        // Cán bộ có vị trí nhưng chưa có chỉ tiêu — thêm 1 hàng trống
+        rows.push(['KPI', c.tenCB, c.viTri, '', CU.hn, '', '', '', '', '', '']);
+      } else {
+        ctList.forEach(ct => {
+          rows.push(['KPI', c.tenCB, c.viTri, '', CU.hn, '', '', ct, '', '', '']);
+        });
+      }
+    });
+
+    if(myCB.length === 0){
+      // Fallback nếu phòng chưa có cán bộ
+      rows.push(['KPI','(chưa có cán bộ)','','','','','','','','','']);
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    // Style header row
+    ws['!cols'] = [7,24,14,10,20,12,15,55,14,10,15].map(w=>({wch:w}));
+    // Freeze header row
+    ws['!freeze'] = {xSplit:0, ySplit:1};
+
+    // Highlight header cells
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for(let C=range.s.c; C<=range.e.c; C++){
+      const cell = ws[XLSX.utils.encode_cell({r:0,c:C})];
+      if(cell) cell.s = {font:{bold:true},fill:{fgColor:{rgb:'1565C0'}},font:{color:{rgb:'FFFFFF'},bold:true}};
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, 'KPI_'+myPhong.replace(/[^a-zA-Z0-9]/g,'_').slice(0,20));
+    XLSX.writeFile(wb, `IMPORT_KPI_${myPhong}_${new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')}.xlsx`);
+
+  } else {
+    // Admin hoặc chưa đăng nhập: xuất file mẫu ví dụ như cũ
+    const rows=[
+      header,
+      ['KPI','Nguyễn Văn A','QLKH','Q1/2025','Trần Văn B','31/03/2025','','Dư nợ cuối kỳ','1500000','Tr.đ',''],
+      ['KPI','Nguyễn Văn A','QLKH','Q1/2025','Trần Văn B','31/03/2025','','Huy động vốn cuối kỳ','2000000','Tr.đ',''],
+      ['BSC','CẨM BÌNH','PGD','Q1/2025','Trần Văn B','31/03/2025','','Dư nợ tín dụng cuối kỳ','800000','Tr.đ',''],
+    ];
+    const ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[7,22,14,10,18,12,15,50,14,10,15].map(w=>({wch:w}));
+    XLSX.utils.book_append_sheet(wb,ws,'PhanGiao');
+    XLSX.writeFile(wb,'MAUIMPORT_PhanGiao.xlsx');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════�═══════════════════════════
+// DOMContentLoaded handled by Firebase module above
+</script>
+
+<!-- MODAL: Đổi mật khẩu -->
+<div class="ov" id="ov-chpass">
+  <div class="modal" style="max-width:420px">
+    <div class="mhd">
+      <div class="mtt">🔑 Đổi mật khẩu</div>
+      <button class="mxb" onclick="closeM('ov-chpass')">✕</button>
+    </div>
+    <div class="mbd">
+      <div id="chpassAlert"></div>
+      <div class="fg">
+        <label class="fl">Mật khẩu hiện tại <span class="req">*</span></label>
+        <input class="fc" type="password" id="cpOld" placeholder="Nhập mật khẩu hiện tại..." autocomplete="current-password">
+      </div>
+      <div class="fg">
+        <label class="fl">Mật khẩu mới <span class="req">*</span></label>
+        <input class="fc" type="password" id="cpNew" placeholder="Tối thiểu 6 ký tự..." autocomplete="new-password">
+      </div>
+      <div class="fg">
+        <label class="fl">Xác nhận mật khẩu mới <span class="req">*</span></label>
+        <input class="fc" type="password" id="cpCfm" placeholder="Nhập lại mật khẩu mới..." autocomplete="new-password" onkeydown="if(event.key==='Enter')doChangePass()">
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn btn-gray" onclick="closeM('ov-chpass')">Hủy</button>
+      <button class="btn btn-blue" onclick="doChangePass()">💾 Đổi mật khẩu</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
