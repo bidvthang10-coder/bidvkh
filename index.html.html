@@ -214,7 +214,7 @@ function startRealtimeSync() {
       if (key === 'vt')    { window.VT    = val; }
       if (key === 'bsc')   { window.BSC   = val; }
       if (key === 'pb')    { window.PB    = val; }
-      if (key === 'users') { window.USERS = val; }
+      if (key === 'users') { window.USERS = val; USERS = val; }
       if (key === 'pg')    { window.PG    = val; }
       // Re-render nếu app đang hiển thị
       if (document.getElementById('mainApp').style.display !== 'none') {
@@ -246,7 +246,7 @@ async function initApp() {
     window.BSC   = bscDoc   ? bscDoc.data   : JSON.parse(JSON.stringify(D_BSC));
     window.PB    = pbDoc    ? pbDoc.data    : JSON.parse(JSON.stringify(D_PB));
     window.PG    = pgDoc    ? pgDoc.data    : [];
-    window.USERS = usersDoc ? usersDoc.data : JSON.parse(JSON.stringify(D_USERS));
+    window.USERS = usersDoc ? usersDoc.data : JSON.parse(JSON.stringify(D_USERS)); USERS = window.USERS;
 
     if (!cbDoc)    await window.sCB();
     if (!vtDoc)    await window.sVT();
@@ -972,7 +972,7 @@ const D_BSC = {"PGD": ["Hoa hồng bảo hiểm (Bic, Metlife)", "Thu nhập rò
 const D_PB  = {"CẨM BÌNH": "PGD", "CẨM PHÚ": "PGD", "CẨM THỦY": "PGD", "KHCN": "KHCN", "KHDN": "KHDN", "KHƯT": "KHƯT", "MÔNG DƯƠNG": "PGD", "QUANG HANH": "PGD", "VÂN ĐỒN": "PGD"};   // {phong:maBCT}
 
 // ═══════════════════════════════════════════════════
-// FIREBASE — dữ liệu được load & sync qua <script type="module"> ở trên
+// FIREBASE — dữ liệu được load & sync qua script module ở trên
 // ═══════════════════════════════════════════════════
 // Biến toàn cục — được gán bởi module Firebase sau khi load xong
 var CB=[], VT={}, BSC={}, PB={}, PG=[];  // var = window.CB etc (shared with Firebase module)
@@ -1014,7 +1014,7 @@ function doLogin(){
   const un=(document.getElementById('liU').value||'').trim();
   const pw=document.getElementById('liP').value||'';
   if(!un) return;
-  const u=USERS.find(x=>x.un===un && x.pw===pw && x.act);
+  const u=(window.USERS||USERS).find(x=>x.un===un && x.pw===pw && x.act);
   if(!u){
     const e=document.getElementById('loginErr');
     e.style.display='block'; setTimeout(()=>e.style.display='none',3000); return;
@@ -1746,7 +1746,7 @@ function renderDS(){
       <td>${stBadge(p)}</td>
       <td><div style="display:flex;gap:3px;flex-wrap:nowrap">
         <button class="btn btn-gray btn-xs" onclick="event.stopPropagation();viewPG('${p.id}')">👁</button>
-        ${canDuyet?`<button class="btn btn-green btn-xs" title="Duyệt" onclick="event.stopPropagation();duyetPG('${p.id}')">✅</button>`:''}
+        ${canDuyet?(p.khCount===p.ctCount?`<button class="btn btn-green btn-xs" title="Duyệt" onclick="event.stopPropagation();duyetPG('${p.id}')">✅</button>`:`<button class="btn btn-xs" title="Chưa nhập đủ số giao (${p.khCount}/${p.ctCount} chỉ tiêu)" onclick="event.stopPropagation();duyetPG('${p.id}')" style="background:#fdecea;color:#c0392b;border:1px solid #f5b7b1;cursor:not-allowed">⚠️</button>`):''}
         ${canBoD?`<button class="btn btn-gold btn-xs" title="Bỏ duyệt" onclick="event.stopPropagation();boDuyetPG('${p.id}')">↩</button>`:''}
         ${canXoa?`<button class="btn btn-red btn-xs" onclick="event.stopPropagation();delPG('${p.id}')">🗑</button>`:''}
       </div></td>
@@ -1765,7 +1765,14 @@ function duyetPG(id){
   if(p.boCT==='KPI'&&!can.duyetKPI()){alert('Không có quyền duyệt KPI!');return;}
   if(p.boCT==='BSC'&&!can.duyetBSC()){alert('Chỉ Admin mới được duyệt BSC!');return;}
   if(isTruong()&&!_pgBelongsToPhong(p,CU.phong)){alert('Chỉ duyệt phân giao thuộc phòng mình!');return;}
-  p.status='approved'; p.approvedBy=CU.hn; p.approvedAt=new Date().toLocaleDateString('vi-VN');
+  // Kiểm tra tất cả chỉ tiêu đã nhập số KH
+  const thieu=(p.items||[]).filter(v=>!v.soKH||v.soKH.toString().trim()==='');
+  if(thieu.length>0){
+    const tenThieu=thieu.map(function(v){return '• '+v.chiTieu;}).join('\n');
+    alert('❌ Không thể duyệt!\n\nCòn '+thieu.length+'/'+p.ctCount+' chỉ tiêu chưa nhập số giao:\n'+tenThieu+'\n\nVui lòng cập nhật đầy đủ trước khi duyệt.');
+    return;
+  }
+    p.status='approved'; p.approvedBy=CU.hn; p.approvedAt=new Date().toLocaleDateString('vi-VN');
   sPG(); renderDS();
 }
 
@@ -1775,6 +1782,14 @@ function boDuyetPG(id){
   const p=PG.find(x=>x.id===id);if(!p)return;
   p.status='pending'; p.approvedBy=''; p.approvedAt='';
   sPG(); renderDS();
+}
+
+function _warnThieu(p){
+  const thieu=(p.items||[]).filter(v=>!v.soKH||String(v.soKH).trim()==='');
+  if(thieu.length===0||p.status==='approved') return '';
+  return '<div style="background:#fdecea;border:1px solid #f5b7b1;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12.5px;color:#c0392b">'
+    +'⚠️ <strong>Chưa nhập đủ số giao:</strong> còn <strong>'+thieu.length+'/'+p.ctCount+'</strong> chỉ tiêu chưa có số — không thể duyệt cho đến khi nhập đầy đủ.'
+    +'</div>';
 }
 
 function viewPG(id){
@@ -1804,7 +1819,8 @@ function viewPG(id){
       <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Trạng thái</div>
         <div style="margin-top:4px">${stBadge}</div></div>
     </div>
-    ${p.ghiChu?`<div style="background:#fef8e7;border:1px solid #f0d080;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12.5px"><strong>📝 Ghi chú:</strong> ${p.ghiChu}</div>`:''}
+    ${p.ghiChu?('<div style="background:#fef8e7;border:1px solid #f0d080;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12.5px"><strong>📝 Ghi chú:</strong> '+p.ghiChu+'</div>'):''}
+    ${_warnThieu(p)}
     <div class="tw"><table>
       <thead><tr><th>#</th><th>Tên chỉ tiêu</th>${p.boCT==='BSC'?'<th style="text-align:right;color:#005452">Bán Buôn</th><th style="text-align:right;color:#005452">Bán Lẻ</th>':''}<th style="text-align:right">Tổng/Số KH</th><th>Đơn vị</th><th>Ghi chú CT</th></tr></thead>
       <tbody>${(p.items||[]).map((v,i)=>`
