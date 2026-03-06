@@ -1334,14 +1334,21 @@ function updBadges(){
 // DASHBOARD
 // ═══════════════════════════════════════════════════
 function renderDash(){
+  // Phạm vi dữ liệu theo quyền
+  const myPhong = (isTruong()||isCBRole()) ? CU.phong : null;
+  const myCB  = myPhong ? CB.filter(x=>x.phong===myPhong) : CB;
+  const myPG  = myPhong ? PG.filter(p=>_pgBelongsToPhong(p,myPhong)) : PG;
+
   const totKPI=Object.values(VT).reduce((a,v)=>a+v.length,0);
   const totBSC=Object.values(BSC).reduce((a,v)=>a+v.length,0);
+  const pgLabel = myPhong ? `📨 Lượt PG (${myPhong})` : '📨 Lượt phân giao';
+  const cbLabel = myPhong ? `👤 CB AM (${myPhong})` : '👤 Cán bộ AM';
   document.getElementById('statRow').innerHTML=`
-    <div class="stat"><div class="stat-v" style="color:#006B68">${CB.length}</div><div class="stat-l">👤 Cán bộ AM</div></div>
+    <div class="stat"><div class="stat-v" style="color:#006B68">${myCB.length}</div><div class="stat-l">${cbLabel}</div></div>
     <div class="stat"><div class="stat-v" style="color:#006B68">${totKPI}</div><div class="stat-l">🎯 Chỉ tiêu KPI</div></div>
     <div class="stat"><div class="stat-v" style="color:#005452">${totBSC}</div><div class="stat-l">📐 Chỉ tiêu BSC</div></div>
-    <div class="stat" style="border-left:4px solid #FFC62F"><div class="stat-v" style="color:#FFC62F">${PG.length}</div><div class="stat-l">📨 Lượt phân giao</div></div>`;
-  const recent=[...PG].reverse().slice(0,8);
+    <div class="stat" style="border-left:4px solid #FFC62F"><div class="stat-v" style="color:#FFC62F">${myPG.length}</div><div class="stat-l">${pgLabel}</div></div>`;
+  const recent=[...myPG].reverse().slice(0,8);
   document.getElementById('pgRecent').innerHTML=recent.length?recent.map(p=>`
     <tr class="row-c" onclick="viewPG('${p.id}')">
       <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.maAM&&p.boCT==='KPI'?'AM '+p.maAM+' · ':''+(p.targetSub||'')}</small></td>
@@ -1359,14 +1366,15 @@ function renderDash(){
   document.getElementById('bscStat').innerHTML=Object.entries(BSC).map(([m,cts])=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f0f4f8">
       <span class="ph">${m}</span><span style="color:#445566">${cts.length} CT</span></div>`).join('');
-  // Cập nhật badge chưa phân giao
   _updateChuaPGBadge();
 }
 
 function _updateChuaPGBadge(){
   try {
-    const daGiao = new Set(PG.filter(p=>p.boCT==='KPI').map(p=>p.target));
-    const chuaCB = CB.filter(x=>x.trangThai==='HOAT_DONG'&&!daGiao.has(x.tenCB)).length;
+    const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+    const daGiaoKeys = new Set(PG.filter(p=>p.boCT==='KPI').map(p=>p.maCB||p.target));
+    const allCB = myPhong ? CB.filter(x=>x.phong===myPhong&&x.trangThai==='HOAT_DONG') : CB.filter(x=>x.trangThai==='HOAT_DONG');
+    const chuaCB = allCB.filter(x=>!daGiaoKeys.has(x.maCB)&&!daGiaoKeys.has(x.tenCB)).length;
     const daGiaoB = new Set(PG.filter(p=>p.boCT==='BSC').map(p=>p.target));
     const chuaPB = Object.keys(PB).filter(ph=>!daGiaoB.has(ph)).length;
     const total = chuaCB + (isAdmin()?chuaPB:0);
@@ -1523,11 +1531,16 @@ function renderChuaPG() {
     return;
   }
   // tính tỷ lệ hoàn thành theo từng kỳ
-  const activeCB = CB.filter(x=>x.trangThai==='HOAT_DONG').length;
+  const myPhong2=(isTruong()||isCBRole())?CU.phong:null;
+  const activeCB = myPhong2
+    ? CB.filter(x=>x.phong===myPhong2&&x.trangThai==='HOAT_DONG').length
+    : CB.filter(x=>x.trangThai==='HOAT_DONG').length;
   const allPB    = Object.keys(PB).length;
   kyStatEl.innerHTML = allKy.map(k=>{
-    const kpiDone = new Set(PG.filter(p=>p.boCT==='KPI'&&p.ky===k).map(p=>p.target)).size;
-    const bscDone = new Set(PG.filter(p=>p.boCT==='BSC'&&p.ky===k).map(p=>p.target)).size;
+    const pgKy = PG.filter(p=>p.ky===k);
+    const kpiPGky = myPhong2 ? pgKy.filter(p=>p.boCT==='KPI'&&_pgBelongsToPhong(p,myPhong2)) : pgKy.filter(p=>p.boCT==='KPI');
+    const kpiDone = new Set(kpiPGky.map(p=>p.target)).size;
+    const bscDone = new Set(pgKy.filter(p=>p.boCT==='BSC').map(p=>p.target)).size;
     const kpiPct  = activeCB>0 ? Math.round(kpiDone/activeCB*100) : 0;
     const bscPct  = allPB>0    ? Math.round(bscDone/allPB*100)    : 0;
     return `
