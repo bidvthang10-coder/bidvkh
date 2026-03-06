@@ -748,14 +748,61 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="srch"><span class="srch-ic">🔍</span><input id="cbSQ" placeholder="Tìm cán bộ..." oninput="renderCB()"></div>
       <select class="fsel" id="cbVTF" onchange="renderCB()"><option value="">Tất cả vị trí</option></select>
       <select class="fsel" id="cbPhF" onchange="renderCB()"><option value="">Tất cả phòng</option></select>
+      <button class="btn btn-blue btn-sm" onclick="openAddCB()" id="btnAddCB">➕ Thêm cán bộ</button>
     </div>
     <div class="card">
       <div class="card-h"><div class="card-t">👥 Danh sách cán bộ AM</div><span id="cbCnt" style="font-size:11px;color:#8fa3b8"></span></div>
       <div class="tw"><table>
-        <thead><tr><th>Mã CB</th><th>Mã AM</th><th>Họ tên</th><th>Phòng</th><th>Vị trí</th><th>Trạng thái</th><th>Số CT (vị trí)</th><th>Lần PG</th></tr></thead>
+        <thead><tr><th>Mã CB</th><th>Mã AM</th><th>Họ tên</th><th>Phòng</th><th>Vị trí</th><th>Trạng thái</th><th>Số CT</th><th>Lần PG</th><th></th></tr></thead>
         <tbody id="cbTb"></tbody>
       </table></div>
       <div class="pag" id="cbPag"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Thêm / Sửa cán bộ -->
+  <div class="ov" id="ov-cbmod">
+    <div class="modal" style="max-width:480px">
+      <div class="mhd">
+        <div class="mtt" id="cbModTitle">Thêm cán bộ</div>
+        <button class="mxb" onclick="closeM('ov-cbmod')">✕</button>
+      </div>
+      <div class="mbd">
+        <div id="cbModAlert"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Mã CB <span style="color:#c0392b">*</span></label>
+            <input id="cbMod_maCB" class="inp" placeholder="VD: 164245" style="width:100%">
+          </div>
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Mã AM</label>
+            <input id="cbMod_maAM" class="inp" placeholder="VD: 44116008" style="width:100%">
+          </div>
+          <div style="grid-column:1/-1">
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Họ tên <span style="color:#c0392b">*</span></label>
+            <input id="cbMod_tenCB" class="inp" placeholder="Nguyễn Văn A" style="width:100%">
+          </div>
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Phòng / PGD <span style="color:#c0392b">*</span></label>
+            <select id="cbMod_phong" class="inp" style="width:100%"></select>
+          </div>
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Vị trí <span style="color:#c0392b">*</span></label>
+            <select id="cbMod_viTri" class="inp" style="width:100%"></select>
+          </div>
+          <div style="grid-column:1/-1">
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Trạng thái</label>
+            <select id="cbMod_tt" class="inp" style="width:100%">
+              <option value="HOAT_DONG">Hoạt động</option>
+              <option value="NGHI_VIEC">Nghỉ việc</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="mft">
+        <button class="btn btn-gray" onclick="closeM('ov-cbmod')">Hủy</button>
+        <button class="btn btn-blue" onclick="saveCBMod()">💾 Lưu</button>
+      </div>
     </div>
   </div>
 
@@ -2056,7 +2103,6 @@ function renderCB(){
   const vt=document.getElementById('cbVTF').value||'';
   const ph=document.getElementById('cbPhF').value||'';
   const vts=[...new Set(CB.map(c=>c.viTri))].sort();
-  // Phong filter: truong/cb chỉ thấy phòng mình
   const phFilter=isTruong()||isCBRole()?CU.phong:'';
   const phs=phFilter?[phFilter]:[...new Set(CB.map(c=>c.phong))].sort();
   const vtEl=document.getElementById('cbVTF'),cvt=vtEl.value;
@@ -2066,24 +2112,112 @@ function renderCB(){
   let list=CB.filter(c=>(!q||has(c.tenCB,q)||has(c.maCB,q))&&(!vt||c.viTri===vt)&&(!ph||c.phong===ph));
   if(phFilter) list=list.filter(c=>c.phong===phFilter);
   document.getElementById('cbCnt').textContent=list.length+' cán bộ';
+  // Ẩn/hiện nút thêm theo quyền
+  const btnAdd=document.getElementById('btnAddCB');
+  if(btnAdd) btnAdd.style.display=isAdmin()?'':'none';
   const pages=Math.max(1,Math.ceil(list.length/20));
   if(cbPg>pages)cbPg=1;
   const sl=list.slice((cbPg-1)*20,cbPg*20);
   document.getElementById('cbTb').innerHTML=sl.length?sl.map(c=>{
     const ctN=(VT[c.viTri]||[]).length;
-    const pgN=PG.filter(p=>p.boCT==='KPI'&&p.target===c.tenCB).length;
+    const pgN=PG.filter(p=>p.boCT==='KPI'&&(p.maCB===c.maCB||p.target===c.tenCB)).length;
+    const acts=isAdmin()?`<div style="display:flex;gap:3px">
+      <button class="btn btn-gray btn-xs" onclick="openEditCB('${esc(c.maCB)}')">✏️</button>
+      <button class="btn btn-red btn-xs" onclick="delCB('${esc(c.maCB)}')">🗑</button>
+    </div>`:'—';
     return `<tr>
       <td><span style="font-family:monospace;font-size:10.5px;background:#eef2f7;padding:2px 5px;border-radius:4px">${c.maCB}</span></td>
       <td><span style="font-family:monospace;font-size:10.5px;background:#e0f5f3;color:#005452;padding:2px 5px;border-radius:4px">${c.maAM||'—'}</span></td>
       <td><strong>${c.tenCB}</strong></td>
       <td><span class="ph">${c.phong}</span></td>
       <td><span class="vt">${c.viTri}</span></td>
-      <td><span style="font-size:10.5px;padding:2px 7px;border-radius:10px;font-weight:700;background:${c.trangThai==='HOAT_DONG'?'#e0f5f3':'#fdecea'};color:${c.trangThai==='HOAT_DONG'?'#005452':'#c0392b'}">${c.trangThai}</span></td>
-      <td>${ctN} CT</td>
+      <td><span style="font-size:10.5px;padding:2px 7px;border-radius:10px;font-weight:700;background:${c.trangThai==='HOAT_DONG'?'#e0f5f3':'#fdecea'};color:${c.trangThai==='HOAT_DONG'?'#005452':'#c0392b'}">${c.trangThai==='HOAT_DONG'?'Hoạt động':'Nghỉ việc'}</span></td>
+      <td style="color:#445566">${ctN} CT</td>
       <td>${pgN?`<span style="color:#006B68;font-weight:700">${pgN}</span>`:'—'}</td>
+      <td>${acts}</td>
     </tr>`;
-  }).join(''):'<tr><td colspan="8"><div class="empty">Không có cán bộ</div></td></tr>';
+  }).join(''):'<tr><td colspan="9"><div class="empty">Không có cán bộ</div></td></tr>';
   renderPag('cbPag',pages,cbPg,p=>{cbPg=p;renderCB();});
+}
+
+// ── CRUD Cán bộ ──
+let _cbModKey=null; // null = thêm mới, maCB = sửa
+
+function _fillCBModDropdowns(){
+  const phOpts=Object.keys(PB).sort().map(p=>`<option value="${p}">${p}</option>`).join('');
+  document.getElementById('cbMod_phong').innerHTML='<option value="">-- Chọn phòng --</option>'+phOpts;
+  const vtOpts=Object.keys(VT).sort().map(v=>`<option value="${v}">${v}</option>`).join('');
+  document.getElementById('cbMod_viTri').innerHTML='<option value="">-- Chọn vị trí --</option>'+vtOpts;
+}
+
+function openAddCB(){
+  if(!isAdmin()){alert('Chỉ Admin mới có quyền thêm cán bộ!');return;}
+  _cbModKey=null;
+  document.getElementById('cbModTitle').textContent='➕ Thêm cán bộ mới';
+  document.getElementById('cbModAlert').innerHTML='';
+  document.getElementById('cbMod_maCB').value='';
+  document.getElementById('cbMod_maAM').value='';
+  document.getElementById('cbMod_tenCB').value='';
+  document.getElementById('cbMod_tt').value='HOAT_DONG';
+  _fillCBModDropdowns();
+  document.getElementById('cbMod_phong').value='';
+  document.getElementById('cbMod_viTri').value='';
+  openM('ov-cbmod');
+  setTimeout(()=>document.getElementById('cbMod_maCB').focus(),100);
+}
+
+function openEditCB(maCB){
+  if(!isAdmin()){alert('Chỉ Admin mới có quyền sửa cán bộ!');return;}
+  const cb=CB.find(x=>x.maCB===maCB); if(!cb)return;
+  _cbModKey=maCB;
+  document.getElementById('cbModTitle').textContent='✏️ Sửa cán bộ — '+cb.tenCB;
+  document.getElementById('cbModAlert').innerHTML='';
+  document.getElementById('cbMod_maCB').value=cb.maCB;
+  document.getElementById('cbMod_maAM').value=cb.maAM||'';
+  document.getElementById('cbMod_tenCB').value=cb.tenCB;
+  document.getElementById('cbMod_tt').value=cb.trangThai||'HOAT_DONG';
+  _fillCBModDropdowns();
+  document.getElementById('cbMod_phong').value=cb.phong;
+  document.getElementById('cbMod_viTri').value=cb.viTri;
+  openM('ov-cbmod');
+}
+
+function saveCBMod(){
+  const maCB=document.getElementById('cbMod_maCB').value.trim();
+  const maAM=document.getElementById('cbMod_maAM').value.trim();
+  const tenCB=document.getElementById('cbMod_tenCB').value.trim();
+  const phong=document.getElementById('cbMod_phong').value;
+  const viTri=document.getElementById('cbMod_viTri').value;
+  const tt=document.getElementById('cbMod_tt').value;
+  const al=document.getElementById('cbModAlert');
+  if(!maCB||!tenCB||!phong||!viTri){
+    al.innerHTML='<div class="alert a-err">⚠️ Vui lòng điền đủ các trường bắt buộc!</div>';return;
+  }
+  if(!_cbModKey && CB.find(x=>x.maCB===maCB)){
+    al.innerHTML='<div class="alert a-err">❌ Mã CB <b>'+maCB+'</b> đã tồn tại!</div>';return;
+  }
+  if(_cbModKey){
+    // Sửa
+    const idx=CB.findIndex(x=>x.maCB===_cbModKey);
+    if(idx>=0) CB[idx]={maCB,maAM,tenCB,phong,viTri,trangThai:tt};
+  } else {
+    // Thêm mới
+    CB.push({maCB,maAM,tenCB,phong,viTri,trangThai:tt});
+  }
+  sCB(); updBadges(); renderCB(); renderDash();
+  closeM('ov-cbmod');
+}
+
+function delCB(maCB){
+  if(!isAdmin()){alert('Chỉ Admin mới có quyền xóa!');return;}
+  const cb=CB.find(x=>x.maCB===maCB); if(!cb)return;
+  const pgCount=PG.filter(p=>p.boCT==='KPI'&&(p.maCB===maCB||p.target===cb.tenCB)).length;
+  const msg=pgCount
+    ? 'Cán bộ '+cb.tenCB+' đang có '+pgCount+' phân giao KPI. Xóa sẽ không ảnh hưởng các phân giao đó. Tiếp tục?'
+    : 'Xóa cán bộ '+cb.tenCB+'?';
+  if(!confirm(msg))return;
+  CB=CB.filter(x=>x.maCB!==maCB);
+  sCB(); updBadges(); renderCB(); renderDash();
 }
 
 // ═══════════════════════════════════════════════════
@@ -2225,31 +2359,31 @@ function exportPGExcel(){
   const wb=XLSX.utils.book_new();
   if(fmt==='summary'){
     // Sheet 1: Tóm tắt
-    const rows=[['Bộ CT','Cán bộ / Phòng','Phòng / Mã BCT phụ','Vị trí / Mã BCT','Kỳ đánh giá','Số CT','Đã nhập KH','Người giao','Hạn','Ngày lập','Ghi chú']];
-    list.forEach(p=>rows.push([p.boCT,p.target,p.targetSub||'',p.targetKey,p.ky||'',p.ctCount,p.khCount||0,p.nguoiGiao||'',p.han||'',p.ngayGiao||'',p.ghiChu||'']));
+    const rows=[['Bộ CT','Mã AM','Cán bộ / Phòng','Phòng / Mã BCT phụ','Vị trí / Mã BCT','Kỳ đánh giá','Số CT','Đã nhập KH','Người giao','Hạn','Ngày lập','Ghi chú']];
+    list.forEach(p=>rows.push([p.boCT,p.boCT==='KPI'?(p.maAM||''):'',p.target,p.targetSub||'',p.targetKey,p.ky||'',p.ctCount,p.khCount||0,p.nguoiGiao||'',p.han||'',p.ngayGiao||'',p.ghiChu||'']));
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[6,22,20,12,14,7,8,18,12,12,30].map(w=>({wch:w}));
+    ws['!cols']=[6,14,22,20,12,14,7,8,18,12,12,30].map(w=>({wch:w}));
     XLSX.utils.book_append_sheet(wb,ws,'Tóm tắt phân giao');
   } else {
     // Sheet chi tiết: mỗi hàng = 1 chỉ tiêu
-    const rows=[['Bộ CT','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ đánh giá','Người giao','Ngày lập','STT CT','Tên chỉ tiêu','Khối Bán Buôn','Khối Bán Lẻ','Tổng/Số KH','Đơn vị','Ghi chú CT']];
+    const rows=[['Bộ CT','Mã AM','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ đánh giá','Người giao','Ngày lập','STT CT','Tên chỉ tiêu','Khối Bán Buôn','Khối Bán Lẻ','Tổng/Số KH','Đơn vị','Ghi chú CT']];
     list.forEach(p=>{
       (p.items||[]).forEach((v,i)=>{
         if(p.boCT==='BSC'){
-          rows.push([p.boCT,p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.ngayGiao||'',i+1,v.chiTieu,v.khoiBanBuon||'',v.khoiBanLe||'',v.soKH||'',v.donVi||'',v.ghiChu||'']);
+          rows.push([p.boCT,'',p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.ngayGiao||'',i+1,v.chiTieu,v.khoiBanBuon||'',v.khoiBanLe||'',v.soKH||'',v.donVi||'',v.ghiChu||'']);
         } else {
-          rows.push([p.boCT,p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.ngayGiao||'',i+1,v.chiTieu,'','',v.soKH||'',v.donVi||'',v.ghiChu||'']);
+          rows.push([p.boCT,p.maAM||'',p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.ngayGiao||'',i+1,v.chiTieu,'','',v.soKH||'',v.donVi||'',v.ghiChu||'']);
         }
       });
     });
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols']=[6,22,12,14,18,12,6,50,14,14,16,14,25].map(w=>({wch:w}));
+    ws['!cols']=[6,14,22,12,14,18,12,6,50,14,14,16,14,25].map(w=>({wch:w}));
     XLSX.utils.book_append_sheet(wb,ws,'Chi tiết phân giao');
     // Sheet tóm tắt kèm theo
-    const rows2=[['Bộ CT','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ','Số CT','Đã nhập KH','Người giao','Ngày lập']];
-    list.forEach(p=>rows2.push([p.boCT,p.target,p.targetKey,p.ky||'',p.ctCount,p.khCount||0,p.nguoiGiao||'',p.ngayGiao||'']));
+    const rows2=[['Bộ CT','Mã AM','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ','Số CT','Đã nhập KH','Người giao','Ngày lập']];
+    list.forEach(p=>rows2.push([p.boCT,p.boCT==='KPI'?(p.maAM||''):'',p.target,p.targetKey,p.ky||'',p.ctCount,p.khCount||0,p.nguoiGiao||'',p.ngayGiao||'']));
     const ws2=XLSX.utils.aoa_to_sheet(rows2);
-    ws2['!cols']=[6,22,12,14,7,8,18,12].map(w=>({wch:w}));
+    ws2['!cols']=[6,14,22,12,14,7,8,18,12].map(w=>({wch:w}));
     XLSX.utils.book_append_sheet(wb,ws2,'Tóm tắt');
   }
   const d=new Date().toLocaleDateString('vi-VN').replace(/\//g,'-');
@@ -2273,21 +2407,21 @@ function exportFilteredPG(){
 function exportFullDetail(list,fname){
   const wb=XLSX.utils.book_new();
   // Sheet chi tiết
-  const rows=[['Bộ CT','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ đánh giá','Người giao','Hạn HT','Ngày lập','STT','Tên chỉ tiêu','Khối Bán Buôn','Khối Bán Lẻ','Tổng/Số KH','Đơn vị','Ghi chú CT']];
+  const rows=[['Bộ CT','Mã AM','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ đánh giá','Người giao','Hạn HT','Ngày lập','STT','Tên chỉ tiêu','Khối Bán Buôn','Khối Bán Lẻ','Tổng/Số KH','Đơn vị','Ghi chú CT']];
   list.forEach(p=>{
     (p.items||[]).forEach((v,i)=>{
-      if(p.boCT==='BSC'){rows.push([p.boCT,p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.han||'',p.ngayGiao||'',i+1,v.chiTieu,v.khoiBanBuon||'',v.khoiBanLe||'',v.soKH||'',v.donVi||'',v.ghiChu||'']);}
-      else{rows.push([p.boCT,p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.han||'',p.ngayGiao||'',i+1,v.chiTieu,'','',v.soKH||'',v.donVi||'',v.ghiChu||'']);}
+      if(p.boCT==='BSC'){rows.push([p.boCT,'',p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.han||'',p.ngayGiao||'',i+1,v.chiTieu,v.khoiBanBuon||'',v.khoiBanLe||'',v.soKH||'',v.donVi||'',v.ghiChu||'']);}
+      else{rows.push([p.boCT,p.maAM||'',p.target,p.targetKey,p.ky||'',p.nguoiGiao||'',p.han||'',p.ngayGiao||'',i+1,v.chiTieu,'','',v.soKH||'',v.donVi||'',v.ghiChu||'']);}
     });
   });
   const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[6,22,12,14,18,12,12,5,52,15,14,25].map(w=>({wch:w}));
+  ws['!cols']=[6,14,22,12,14,18,12,12,5,52,15,14,14,14,25].map(w=>({wch:w}));
   XLSX.utils.book_append_sheet(wb,ws,'Chi tiết');
   // Sheet tóm tắt
-  const rows2=[['Bộ CT','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ','Số CT','Đã nhập KH','Người giao','Hạn HT','Ngày lập','Ghi chú']];
-  list.forEach(p=>rows2.push([p.boCT,p.target,p.targetKey,p.ky||'',p.ctCount,p.khCount||0,p.nguoiGiao||'',p.han||'',p.ngayGiao||'',p.ghiChu||'']));
+  const rows2=[['Bộ CT','Mã AM','Cán bộ / Phòng','Vị trí / Mã BCT','Kỳ','Số CT','Đã nhập KH','Người giao','Hạn HT','Ngày lập','Ghi chú']];
+  list.forEach(p=>rows2.push([p.boCT,p.boCT==='KPI'?(p.maAM||''):'',p.target,p.targetKey,p.ky||'',p.ctCount,p.khCount||0,p.nguoiGiao||'',p.han||'',p.ngayGiao||'',p.ghiChu||'']));
   const ws2=XLSX.utils.aoa_to_sheet(rows2);
-  ws2['!cols']=[6,22,12,14,6,8,18,12,12,30].map(w=>({wch:w}));
+  ws2['!cols']=[6,14,22,12,14,6,8,18,12,12,30].map(w=>({wch:w}));
   XLSX.utils.book_append_sheet(wb,ws2,'Tóm tắt');
   const d=new Date().toLocaleDateString('vi-VN').replace(/\//g,'-');
   XLSX.writeFile(wb,`${fname}_${d}.xlsx`);
@@ -2301,15 +2435,21 @@ function exportSinglePG(id){
     ['PHÂN GIAO CHỈ TIÊU','','',''],
     ['Bộ chỉ tiêu:',p.boCT,'',''],
     [p.boCT==='KPI'?'Cán bộ:':'Phòng:',p.target,'Vị trí / Mã BCT:',p.targetKey],
+    ...(p.boCT==='KPI'&&p.maAM?[['Mã AM:',p.maAM,'','']]:[]),
     ['Kỳ đánh giá:',p.ky||'','Người giao:',p.nguoiGiao||''],
     ['Hạn hoàn thành:',p.han||'','Ngày lập:',p.ngayGiao||''],
     ['Ghi chú:',p.ghiChu||'','',''],
     ['','','',''],
-    ['STT','Tên chỉ tiêu','Số kế hoạch','Đơn vị','Ghi chú']
+    p.boCT==='BSC'
+      ? ['STT','Tên chỉ tiêu','Khối Bán Buôn','Khối Bán Lẻ','Tổng/Số KH','Đơn vị','Ghi chú']
+      : ['STT','Tên chỉ tiêu','Số kế hoạch','Đơn vị','Ghi chú']
   ];
-  (p.items||[]).forEach((v,i)=>info.push([i+1,v.chiTieu,v.soKH||'',v.donVi||'',v.ghiChu||'']));
+  (p.items||[]).forEach((v,i)=>{
+    if(p.boCT==='BSC') info.push([i+1,v.chiTieu,v.khoiBanBuon||'',v.khoiBanLe||'',v.soKH||'',v.donVi||'',v.ghiChu||'']);
+    else info.push([i+1,v.chiTieu,v.soKH||'',v.donVi||'',v.ghiChu||'']);
+  });
   const ws=XLSX.utils.aoa_to_sheet(info);
-  ws['!cols']=[{wch:5},{wch:55},{wch:16},{wch:14},{wch:25}];
+  ws['!cols']=p.boCT==='BSC'?[{wch:5},{wch:50},{wch:14},{wch:14},{wch:16},{wch:12},{wch:25}]:[{wch:5},{wch:55},{wch:16},{wch:14},{wch:25}];
   // Bold header row
   ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:4}}];
   XLSX.utils.book_append_sheet(wb,ws,'Phân giao');
