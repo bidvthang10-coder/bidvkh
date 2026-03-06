@@ -1296,7 +1296,7 @@ function renderDash(){
   const recent=[...PG].reverse().slice(0,8);
   document.getElementById('pgRecent').innerHTML=recent.length?recent.map(p=>`
     <tr class="row-c" onclick="viewPG('${p.id}')">
-      <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.targetSub||''}</small></td>
+      <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.maAM&&p.boCT==='KPI'?'AM '+p.maAM+' · ':''+(p.targetSub||'')}</small></td>
       <td><span class="badge ${p.boCT==='KPI'?'bk':'bb'}">${p.boCT}</span></td>
       <td><span class="${p.boCT==='KPI'?'vt':'ph'}">${p.targetKey}</span></td>
       <td>${p.ctCount}</td>
@@ -1367,12 +1367,12 @@ function renderChuaPG() {
 
   // -- Cán bộ đã được phân giao KPI (lọc theo kỳ nếu chọn) --
   const pgKPI = PG.filter(p=>p.boCT==='KPI'&&(!ky||p.ky===ky));
-  const daGiaoNames = new Set(pgKPI.map(p=>p.target));
+  const daGiaoKeys = new Set(pgKPI.map(p=>p.maCB||p.target));
 
   // -- Cán bộ CHƯA được phân giao KPI --
   let chuaCB = CB.filter(c=>
     c.trangThai==='HOAT_DONG' &&
-    !daGiaoNames.has(c.tenCB) &&
+    !daGiaoKeys.has(c.maCB) && !daGiaoKeys.has(c.tenCB) &&
     (!q  || has(c.tenCB,q)||has(c.maCB,q)) &&
     (!ph || c.phong===ph)
   );
@@ -1529,7 +1529,7 @@ function goGiaoBSC(phong, maBCT) {
 // Giao tiếp: mở wizard bước 3 với số KH đã có điền sẵn
 function goSuaKPI(pgId){
   const p=PG.find(x=>x.id===pgId); if(!p)return;
-  const cb=CB.find(x=>x.tenCB===p.target); if(!cb)return;
+  const cb=CB.find(x=>x.maCB===(p.maCB||p.target)||x.tenCB===p.target); if(!cb)return;
   go(document.querySelector('[data-s=tao]'));
   switchTaoTab(1);
   setTimeout(()=>{
@@ -1764,8 +1764,10 @@ function renderTargets(){
 function esc(s){return(s||'').replace(/'/g,"&#39;").replace(/"/g,'&quot;');}
 
 function pickTargetKPI(maCB,tenCB,phong,viTri){
+  const cb=CB.find(x=>x.maCB===maCB)||{};
   WZ.target=maCB; WZ.targetName=tenCB; WZ.targetSub=phong;
   WZ.targetKey=viTri; WZ.ctList=VT[viTri]||[];
+  WZ.maAM=cb.maAM||''; WZ.maCB=maCB;
   document.getElementById('btnW2').disabled=false;
   renderTargets();
 }
@@ -1871,6 +1873,7 @@ function savePG(){
   PG.push({
     id:uid(), boCT:WZ.boCT,
     target:WZ.targetName, targetKey:WZ.targetKey, targetSub:WZ.targetSub||'',
+    maCB:WZ.maCB||'', maAM:WZ.maAM||'',
     ctCount:WZ.ctList.length, khCount:khCnt,
     items:JSON.parse(JSON.stringify(WZ.vals)),
     nguoiGiao:ng, ky:document.getElementById('pgKy').value,
@@ -1882,7 +1885,7 @@ function savePG(){
     status:'pending', approvedBy:'', approvedAt:''
   });
   sPG(); updBadges();
-  WZ={boCT:null,target:null,targetName:'',targetSub:'',targetKey:'',ctList:[],vals:[]};
+  WZ={boCT:null,target:null,targetName:'',targetSub:'',targetKey:'',ctList:[],vals:[],maAM:'',maCB:''};
   document.getElementById('wz4').style.display='none';
   document.getElementById('wz1').style.display='';
   wzStep(1);
@@ -1918,7 +1921,7 @@ function renderDS(){
     const canXoa=can.xoaPG(p);
     return`<tr class="row-c" onclick="viewPG('${p.id}')">
       <td><span class="badge ${p.boCT==='KPI'?'bk':'bb'}">${p.boCT}</span></td>
-      <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.targetSub||''}</small></td>
+      <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.maAM&&p.boCT==='KPI'?'AM '+p.maAM+' · ':''+(p.targetSub||'')}</small></td>
       <td><span class="${p.boCT==='KPI'?'vt':'ph'}">${p.targetKey}</span></td>
       <td style="font-size:11.5px">${p.ky||'—'}</td>
       <td>${p.ctCount}</td>
@@ -1938,7 +1941,7 @@ function renderDS(){
 function _pgBelongsToPhong(p,phong){
   if(!phong)return true;
   if(p.phongGiao===phong)return true;
-  if(p.boCT==='KPI'){const c=CB.find(x=>x.tenCB===p.target);return c&&c.phong===phong;}
+  if(p.boCT==='KPI'){const c=CB.find(x=>x.maCB===(p.maCB||p.target)||x.tenCB===p.target);return c&&c.phong===phong;}
   return p.target===phong;
 }
 
@@ -1985,7 +1988,7 @@ function viewPG(id){
       <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Bộ CT</div>
         <div style="margin-top:3px"><span class="badge ${p.boCT==='KPI'?'bk':'bb'}">${p.boCT}</span></div></div>
       <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">${p.boCT==='KPI'?'Cán bộ':'Phòng'}</div>
-        <div style="font-weight:700;margin-top:3px">${p.target}</div></div>
+        <div style="font-weight:700;margin-top:3px">${p.target}${p.maAM?'<span style="font-size:10px;color:#8fa3b8;font-weight:400;margin-left:6px">AM: '+p.maAM+'</span>':''}</div></div>
       <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">${p.boCT==='KPI'?'Vị trí':'Mã BCT'}</div>
         <div style="margin-top:3px"><span class="${p.boCT==='KPI'?'vt':'ph'}">${p.targetKey}</span></div></div>
       <div><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#8fa3b8">Người giao</div>
@@ -2205,7 +2208,7 @@ function renderExpPreview(){
   document.getElementById('expTb').innerHTML=list.length?list.map(p=>`
     <tr>
       <td><span class="badge ${p.boCT==='KPI'?'bk':'bb'}">${p.boCT}</span></td>
-      <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.targetSub||''}</small></td>
+      <td><strong>${p.target}</strong><br><small style="color:#8fa3b8">${p.maAM&&p.boCT==='KPI'?'AM '+p.maAM+' · ':''+(p.targetSub||'')}</small></td>
       <td><span class="${p.boCT==='KPI'?'vt':'ph'}">${p.targetKey}</span></td>
       <td style="font-size:11.5px">${p.ky||'—'}</td>
       <td>${p.ctCount}</td>
@@ -2598,6 +2601,10 @@ function importFilePG(file){
           donVi=String(r[9]||'').trim();
           gcCT =String(r[10]||'').trim();
           bb=''; bl=''; bo='KPI';
+          // Tìm maAM từ danh sách CB
+          const _cbObj=CB.find(x=>x.tenCB===cb&&(!key2||x.viTri===key2));
+          const impMaAM=_cbObj?_cbObj.maAM:'';
+          const impMaCB=_cbObj?_cbObj.maCB:'';
           if(!cb||!ct){skipped++;continue;}
         }
 
@@ -2608,6 +2615,8 @@ function importFilePG(file){
             target:cb,
             targetKey:key2,
             targetSub:bo==='BSC'?'Mã BCT: '+key2:(key2?'Vị trí: '+key2:''),
+            maCB: (typeof impMaCB!=='undefined'?impMaCB:''),
+            maAM: (typeof impMaAM!=='undefined'?impMaAM:''),
             phongGiao:phong,
             ky, nguoiGiao:ng, han, ghiChu:gc,
             ngayGiao:new Date().toLocaleDateString('vi-VN'),
