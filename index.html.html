@@ -200,12 +200,13 @@ window._sBSC   = async () => { await fsSet('kpi_app/bsc',   { data: window.BSC }
 window._sPB    = async () => { await fsSet('kpi_app/pb',    { data: window.PB }); };
 window._sUsers = async () => { await fsSet('kpi_app/users', { data: window.USERS }); };
 window._sPG    = async () => { await fsSet('kpi_app/pg',    { data: window.PG }); };
+window._sHDV   = async () => { await fsSet('kpi_app/hdv',   { data: window.HDV }); };
 
 // ═══════════════════════════════════════════════════
 // REALTIME LISTENER — tự động cập nhật khi máy khác ghi
 // ═══════════════════════════════════════════════════
 function startRealtimeSync() {
-  const docs = ['cb','vt','bsc','pb','pg','users'];
+  const docs = ['cb','vt','bsc','pb','pg','users','hdv'];
   docs.forEach(key => {
     onSnapshot(doc(db, 'kpi_app', key), (snap) => {
       if (!snap.exists()) return;
@@ -216,6 +217,7 @@ function startRealtimeSync() {
       if (key === 'pb')    { window.PB    = val; }
       if (key === 'users') { window.USERS = val; USERS = val; }
       if (key === 'pg')    { window.PG    = val; }
+      if (key === 'hdv')   { window.HDV   = Array.isArray(val)?val:[]; }
       // Re-render nếu app đang hiển thị
       if (document.getElementById('mainApp').style.display !== 'none') {
         updBadges();
@@ -235,9 +237,9 @@ function startRealtimeSync() {
 async function initApp() {
   showLoading('Đang kết nối Firebase...');
   try {
-    const [cbDoc, vtDoc, bscDoc, pbDoc, pgDoc, usersDoc] = await Promise.all([
+    const [cbDoc, vtDoc, bscDoc, pbDoc, pgDoc, usersDoc, hdvDoc] = await Promise.all([
       fsGet('kpi_app/cb'), fsGet('kpi_app/vt'), fsGet('kpi_app/bsc'),
-      fsGet('kpi_app/pb'), fsGet('kpi_app/pg'), fsGet('kpi_app/users')
+      fsGet('kpi_app/pb'), fsGet('kpi_app/pg'), fsGet('kpi_app/users'), fsGet('kpi_app/hdv')
     ]);
 
     // Nếu chưa có dữ liệu → ghi default lên Firestore
@@ -246,6 +248,7 @@ async function initApp() {
     window.BSC   = bscDoc   ? bscDoc.data   : JSON.parse(JSON.stringify(D_BSC));
     window.PB    = pbDoc    ? pbDoc.data    : JSON.parse(JSON.stringify(D_PB));
     window.PG    = pgDoc    ? pgDoc.data    : [];
+    window.HDV   = hdvDoc   ? (Array.isArray(hdvDoc.data)?hdvDoc.data:[]) : [];
     window.USERS = usersDoc ? usersDoc.data : JSON.parse(JSON.stringify(D_USERS)); USERS = window.USERS;
 
     if (!cbDoc)    await window.sCB();
@@ -344,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="sb-a" data-s="bsc" onclick="go(this)"><span class="sb-ic">📐</span>Chỉ tiêu BSC<span class="sb-bx" id="bBSC">0</span></div>
     <div class="sb-sec">Phân giao</div>
     <div class="sb-a" data-s="tao" onclick="go(this)"><span class="sb-ic">📨</span>Tạo phân giao</div>
+    <div class="sb-a" data-s="hdv" onclick="go(this)"><span class="sb-ic">💰</span>Huy động vốn</div>
     <div class="sb-a" data-s="ds" onclick="go(this)"><span class="sb-ic">📋</span>Danh sách PG<span class="sb-bx" id="bPG">0</span></div>
     <div class="sb-sec" id="snQL">Quản lý</div>
     <div class="sb-a" data-s="pb" onclick="go(this)"><span class="sb-ic">🏢</span>Phòng ban<span class="sb-bx" id="bPB">0</span></div>
@@ -898,6 +902,89 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 
+  <!-- HUY ĐỘNG VỐN -->
+  <div class="sec" id="sec-hdv">
+    <div class="fbar">
+      <select class="fsel" id="hdvCBF" onchange="renderHDV()"><option value="">Tất cả cán bộ</option></select>
+      <select class="fsel" id="hdvPhF" onchange="renderHDV()"><option value="">Tất cả phòng</option></select>
+      <select class="fsel" id="hdvKyF" onchange="renderHDV()"><option value="">Tất cả kỳ</option></select>
+      <button class="btn btn-blue btn-sm" onclick="openAddHDV()">➕ Thêm kế hoạch</button>
+      <button class="btn btn-green btn-sm" onclick="exportHDV()">⬇ Xuất Excel</button>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">💰 Kế hoạch huy động vốn</div>
+        <span id="hdvCnt" style="font-size:11px;color:#8fa3b8"></span>
+      </div>
+      <div class="tw"><table id="hdvTable">
+        <thead><tr>
+          <th>Cán bộ</th><th>Mã AM</th><th>Phòng</th><th>Kỳ</th><th>Loại kỳ</th>
+          <th style="text-align:right">Đầu kỳ</th>
+          <th style="text-align:right;color:#27ae60">+ Tăng</th>
+          <th style="text-align:right;color:#c0392b">− Giảm</th>
+          <th style="text-align:right;color:#006B68;font-weight:700">= HĐV</th>
+          <th>Ghi chú</th><th>Ngày nhập</th><th></th>
+        </tr></thead>
+        <tbody id="hdvTb"></tbody>
+      </table></div>
+      <div class="pag" id="hdvPag"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Thêm / Sửa HĐV -->
+  <div class="ov" id="ov-hdvmod">
+    <div class="modal" style="max-width:520px">
+      <div class="mhd">
+        <div class="mtt" id="hdvModTitle">Thêm kế hoạch huy động vốn</div>
+        <button class="mxb" onclick="closeM('ov-hdvmod')">✕</button>
+      </div>
+      <div class="mbd">
+        <div id="hdvModAlert"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="grid-column:1/-1">
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Cán bộ <span style="color:#c0392b">*</span></label>
+            <select id="hdvMod_cb" class="inp" style="width:100%" onchange="hdvAutoFill()"></select>
+          </div>
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Loại kỳ <span style="color:#c0392b">*</span></label>
+            <select id="hdvMod_loaiKy" class="inp" style="width:100%" onchange="hdvGenKy()">
+              <option value="tuan">Tuần</option>
+              <option value="thang">Tháng</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Kỳ <span style="color:#c0392b">*</span></label>
+            <select id="hdvMod_ky" class="inp" style="width:100%"></select>
+          </div>
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Số đầu kỳ (Tr.đ)</label>
+            <input id="hdvMod_dau" type="number" class="inp" placeholder="0" style="width:100%" oninput="hdvCalc()">
+          </div>
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Số tăng (Tr.đ)</label>
+            <input id="hdvMod_tang" type="number" class="inp" placeholder="0" style="width:100%" oninput="hdvCalc()">
+          </div>
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Số giảm (Tr.đ)</label>
+            <input id="hdvMod_giam" type="number" class="inp" placeholder="0" style="width:100%" oninput="hdvCalc()">
+          </div>
+          <div>
+            <label style="font-size:11.5px;font-weight:700;color:#006B68">= Huy động vốn (Tr.đ)</label>
+            <input id="hdvMod_hdv" type="text" class="inp" readonly style="width:100%;background:#e0f5f3;font-weight:700;color:#006B68;font-size:14px">
+          </div>
+          <div style="grid-column:1/-1">
+            <label style="font-size:11.5px;font-weight:700;color:#445566">Ghi chú</label>
+            <input id="hdvMod_gc" class="inp" placeholder="Ghi chú..." style="width:100%">
+          </div>
+        </div>
+      </div>
+      <div class="mft">
+        <button class="btn btn-gray" onclick="closeM('ov-hdvmod')">Hủy</button>
+        <button class="btn btn-blue" onclick="saveHDVMod()">💾 Lưu</button>
+      </div>
+    </div>
+  </div>
+
   <!-- XUẤT DỮ LIỆU -->
   <div class="sec" id="sec-exp">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
@@ -1302,8 +1389,8 @@ const fN=v=>{if(v===''||v===null||v===undefined)return'—';const n=Number(Strin
 // ═══════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════
-const NT={dash:'Dashboard',kpi:'Chỉ tiêu KPI',bsc:'Chỉ tiêu BSC',tao:'Tạo phân giao',ds:'Danh sách phân giao',cb:'Cán bộ',pb:'Phòng ban',users:'Quản lý User',imp:'Import Excel',exp:'Xuất dữ liệu'};
-const NS={dash:'Tổng quan hệ thống',kpi:'Chỉ tiêu theo vị trí',bsc:'Chỉ tiêu theo mã BCT',tao:'Phân giao số kế hoạch cụ thể',ds:'Lịch sử phân giao',cb:'Danh sách cán bộ AM',pb:'Danh sách phòng ban / PGD',users:'Tạo & phân quyền tài khoản',imp:'Import từ file Excel',exp:'Xuất Excel phân giao & bộ chỉ tiêu'};
+const NT={dash:'Dashboard',kpi:'Chỉ tiêu KPI',bsc:'Chỉ tiêu BSC',tao:'Tạo phân giao',ds:'Danh sách phân giao',hdv:'Huy động vốn',cb:'Cán bộ',pb:'Phòng ban',users:'Quản lý User',imp:'Import Excel',exp:'Xuất dữ liệu'};
+const NS={dash:'Tổng quan hệ thống',kpi:'Chỉ tiêu theo vị trí',bsc:'Chỉ tiêu theo mã BCT',tao:'Phân giao số kế hoạch cụ thể',ds:'Lịch sử phân giao',hdv:'Nhập kế hoạch huy động vốn theo tuần / tháng',cb:'Danh sách cán bộ AM',pb:'Danh sách phòng ban / PGD',users:'Tạo & phân quyền tài khoản',imp:'Import từ file Excel',exp:'Xuất Excel phân giao & bộ chỉ tiêu'};
 
 function go(el){
   const s=el.dataset.s; if(!s)return;
@@ -1313,7 +1400,7 @@ function go(el){
   document.getElementById('sec-'+s).classList.add('show');
   document.getElementById('topT').textContent=NT[s]||s;
   document.getElementById('topS').textContent=NS[s]||'';
-  ({dash:renderDash,kpi:renderKPI,bsc:renderBSC,ds:renderDS,cb:renderCB,pb:renderPB,users:renderUsers,exp:renderExpPreview}[s]||function(){})();
+  ({dash:renderDash,kpi:renderKPI,bsc:renderBSC,ds:renderDS,hdv:renderHDV,cb:renderCB,pb:renderPB,users:renderUsers,exp:renderExpPreview}[s]||function(){})();
 }
 
 function openM(id){document.getElementById(id).classList.add('show');}
@@ -2964,6 +3051,193 @@ function downloadSamplePG(type){
 // DOMContentLoaded handled by Firebase module above
 
 
+
+
+// ═══════════════════════════════════════════════════
+// HUY ĐỘNG VỐN
+// ═══════════════════════════════════════════════════
+let HDV = [];
+function sHDV(){ if(window._sHDV) window._sHDV(); }
+let hdvPg=1;
+
+function _hdvScopedCB(){
+  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+  return myPhong ? CB.filter(x=>x.phong===myPhong&&x.trangThai==='HOAT_DONG') : CB.filter(x=>x.trangThai==='HOAT_DONG');
+}
+
+function renderHDV(){
+  const cbF=document.getElementById('hdvCBF').value||'';
+  const phF=document.getElementById('hdvPhF').value||'';
+  const kyF=document.getElementById('hdvKyF').value||'';
+  const scopedCB=_hdvScopedCB();
+  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+  const allPhs=[...new Set(scopedCB.map(x=>x.phong))].sort();
+  const phEl=document.getElementById('hdvPhF');const curPh=phEl.value;
+  phEl.innerHTML='<option value="">Tất cả phòng</option>'+allPhs.map(p=>`<option value="${p}"${p===curPh?' selected':''}>${p}</option>`).join('');
+  const allCBs=scopedCB.filter(x=>!phF||x.phong===phF);
+  const cbEl=document.getElementById('hdvCBF');const curCB=cbEl.value;
+  cbEl.innerHTML='<option value="">Tất cả cán bộ</option>'+allCBs.map(x=>`<option value="${x.maCB}"${x.maCB===curCB?' selected':''}>${x.tenCB} (${x.phong})</option>`).join('');
+  const allKys=[...new Set(HDV.map(x=>x.ky).filter(Boolean))].sort();
+  const kyEl=document.getElementById('hdvKyF');const curKy=kyEl.value;
+  kyEl.innerHTML='<option value="">Tất cả kỳ</option>'+allKys.map(k=>`<option value="${k}"${k===curKy?' selected':''}>${k}</option>`).join('');
+  let list=HDV.filter(r=>{
+    if(myPhong){const cb=CB.find(x=>x.maCB===r.maCB);if(!cb||cb.phong!==myPhong)return false;}
+    if(cbF&&r.maCB!==cbF)return false;
+    if(phF){const cb=CB.find(x=>x.maCB===r.maCB);if(!cb||cb.phong!==phF)return false;}
+    if(kyF&&r.ky!==kyF)return false;
+    return true;
+  }).sort((a,b)=>(b.ngayNhap||'').localeCompare(a.ngayNhap||'')||0);
+  document.getElementById('hdvCnt').textContent=list.length+' bản ghi';
+  const pages=Math.max(1,Math.ceil(list.length/20));
+  if(hdvPg>pages)hdvPg=1;
+  const sl=list.slice((hdvPg-1)*20,hdvPg*20);
+  document.getElementById('hdvTb').innerHTML=sl.length?sl.map(r=>{
+    const cb=CB.find(x=>x.maCB===r.maCB)||{};
+    const hdv=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
+    const canEdit=isAdmin()||(isTruong()&&cb.phong===CU.phong);
+    return `<tr>
+      <td><strong>${cb.tenCB||r.maCB}</strong></td>
+      <td><span style="font-family:monospace;font-size:10.5px;background:#e0f5f3;color:#005452;padding:2px 6px;border-radius:4px">${cb.maAM||'—'}</span></td>
+      <td><span class="ph">${cb.phong||'—'}</span></td>
+      <td style="font-size:12px">${r.ky||'—'}</td>
+      <td><span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${r.loaiKy==='tuan'?'#e8f4fd':'#fef8e7'};color:${r.loaiKy==='tuan'?'#1a6fa0':'#8a5e00'};font-weight:700">${r.loaiKy==='tuan'?'Tuần':'Tháng'}</span></td>
+      <td style="text-align:right;font-size:12px;color:#445566">${_fmtN(r.dauKy)}</td>
+      <td style="text-align:right;font-size:12px;color:#27ae60">+${_fmtN(r.tang)}</td>
+      <td style="text-align:right;font-size:12px;color:#c0392b">-${_fmtN(r.giam)}</td>
+      <td style="text-align:right;font-size:13px;font-weight:800;color:#006B68">${_fmtN(hdv)}</td>
+      <td style="font-size:11px;color:#8fa3b8">${r.ghiChu||''}</td>
+      <td style="font-size:11px;color:#8fa3b8">${r.ngayNhap||''}</td>
+      <td>${canEdit?`<div style="display:flex;gap:3px">
+        <button class="btn btn-gray btn-xs" onclick="openEditHDV('${esc(r.id)}')">✏️</button>
+        <button class="btn btn-red btn-xs" onclick="delHDV('${esc(r.id)}')">🗑</button>
+      </div>`:'—'}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="12"><div class="empty">📭 Chưa có dữ liệu huy động vốn</div></td></tr>';
+  renderPag('hdvPag',pages,hdvPg,p=>{hdvPg=p;renderHDV();});
+}
+
+function _fmtN(v){const n=parseFloat(v)||0;return n===0?'—':n.toLocaleString('vi-VN');}
+
+function hdvGenKy(){
+  const loai=document.getElementById('hdvMod_loaiKy').value;
+  const yr=new Date().getFullYear();
+  const el=document.getElementById('hdvMod_ky');
+  let opts=[];
+  if(loai==='thang'){
+    [-1,0,1].forEach(dy=>{for(let m=1;m<=12;m++) opts.push(`Tháng ${m}/${yr+dy}`);});
+  } else {
+    [-1,0].forEach(dy=>{for(let w=1;w<=53;w++) opts.push(`Tuần ${w}/${yr+dy}`);});
+  }
+  el.innerHTML=opts.map(o=>`<option value="${o}">${o}</option>`).join('');
+  const now=new Date();
+  if(loai==='thang'){
+    el.value=`Tháng ${now.getMonth()+1}/${yr}`;
+  } else {
+    const start=new Date(yr,0,1);
+    const wk=Math.ceil(((now-start)/86400000+start.getDay()+1)/7);
+    el.value=`Tuần ${Math.min(wk,53)}/${yr}`;
+  }
+}
+
+function hdvAutoFill(){
+  const maCB=document.getElementById('hdvMod_cb').value;
+  if(!maCB) return;
+  const prev=HDV.filter(x=>x.maCB===maCB).sort((a,b)=>(b.ngayNhap||'').localeCompare(a.ngayNhap||''))[0];
+  if(prev){
+    const prevHDV=(parseFloat(prev.dauKy)||0)+(parseFloat(prev.tang)||0)-(parseFloat(prev.giam)||0);
+    document.getElementById('hdvMod_dau').value=prevHDV||'';
+    hdvCalc();
+  }
+}
+
+function hdvCalc(){
+  const dau=parseFloat(document.getElementById('hdvMod_dau').value)||0;
+  const tang=parseFloat(document.getElementById('hdvMod_tang').value)||0;
+  const giam=parseFloat(document.getElementById('hdvMod_giam').value)||0;
+  const hdv=dau+tang-giam;
+  document.getElementById('hdvMod_hdv').value=hdv.toLocaleString('vi-VN')+' Tr.đ';
+}
+
+let _hdvModId=null;
+
+function openAddHDV(){
+  _hdvModId=null;
+  document.getElementById('hdvModTitle').textContent='➕ Thêm kế hoạch huy động vốn';
+  document.getElementById('hdvModAlert').innerHTML='';
+  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+  const cbList=myPhong?CB.filter(x=>x.phong===myPhong&&x.trangThai==='HOAT_DONG'):CB.filter(x=>x.trangThai==='HOAT_DONG');
+  document.getElementById('hdvMod_cb').innerHTML='<option value="">-- Chọn cán bộ --</option>'+cbList.map(x=>`<option value="${x.maCB}">${x.tenCB} · ${x.phong}</option>`).join('');
+  ['hdvMod_dau','hdvMod_tang','hdvMod_giam','hdvMod_hdv','hdvMod_gc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('hdvMod_loaiKy').value='tuan';
+  hdvGenKy();
+  openM('ov-hdvmod');
+}
+
+function openEditHDV(id){
+  const r=HDV.find(x=>x.id===id); if(!r)return;
+  _hdvModId=id;
+  const cb=CB.find(x=>x.maCB===r.maCB)||{};
+  document.getElementById('hdvModTitle').textContent='✏️ Sửa — '+(cb.tenCB||r.maCB);
+  document.getElementById('hdvModAlert').innerHTML='';
+  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+  const cbList=myPhong?CB.filter(x=>x.phong===myPhong&&x.trangThai==='HOAT_DONG'):CB.filter(x=>x.trangThai==='HOAT_DONG');
+  document.getElementById('hdvMod_cb').innerHTML='<option value="">-- Chọn cán bộ --</option>'+cbList.map(x=>`<option value="${x.maCB}"${x.maCB===r.maCB?' selected':''}>${x.tenCB} · ${x.phong}</option>`).join('');
+  document.getElementById('hdvMod_loaiKy').value=r.loaiKy||'tuan';
+  hdvGenKy();
+  document.getElementById('hdvMod_ky').value=r.ky||'';
+  document.getElementById('hdvMod_dau').value=r.dauKy||'';
+  document.getElementById('hdvMod_tang').value=r.tang||'';
+  document.getElementById('hdvMod_giam').value=r.giam||'';
+  hdvCalc();
+  document.getElementById('hdvMod_gc').value=r.ghiChu||'';
+  openM('ov-hdvmod');
+}
+
+function saveHDVMod(){
+  const maCB=document.getElementById('hdvMod_cb').value;
+  const loaiKy=document.getElementById('hdvMod_loaiKy').value;
+  const ky=document.getElementById('hdvMod_ky').value;
+  const dauKy=document.getElementById('hdvMod_dau').value.trim();
+  const tang=document.getElementById('hdvMod_tang').value.trim();
+  const giam=document.getElementById('hdvMod_giam').value.trim();
+  const ghiChu=document.getElementById('hdvMod_gc').value.trim();
+  const al=document.getElementById('hdvModAlert');
+  if(!maCB||!ky){al.innerHTML='<div class="alert a-err">⚠️ Vui lòng chọn cán bộ và kỳ!</div>';return;}
+  const dup=HDV.find(x=>x.maCB===maCB&&x.ky===ky&&x.id!==_hdvModId);
+  if(dup){al.innerHTML='<div class="alert a-err">❌ Cán bộ này đã có kế hoạch kỳ <b>'+ky+'</b>!</div>';return;}
+  if(_hdvModId){
+    const idx=HDV.findIndex(x=>x.id===_hdvModId);
+    if(idx>=0) HDV[idx]={...HDV[idx],maCB,loaiKy,ky,dauKy,tang,giam,ghiChu,capNhat:new Date().toLocaleDateString('vi-VN')};
+  } else {
+    HDV.push({id:uid(),maCB,loaiKy,ky,dauKy,tang,giam,ghiChu,ngayNhap:new Date().toLocaleDateString('vi-VN'),taoBy:CU?CU.un:''});
+  }
+  sHDV(); renderHDV(); closeM('ov-hdvmod');
+}
+
+function delHDV(id){
+  const r=HDV.find(x=>x.id===id); if(!r)return;
+  const cb=CB.find(x=>x.maCB===r.maCB)||{};
+  if(!confirm('Xóa kế hoạch HĐV của '+(cb.tenCB||r.maCB)+' kỳ '+r.ky+'?'))return;
+  HDV=HDV.filter(x=>x.id!==id);
+  sHDV(); renderHDV();
+}
+
+function exportHDV(){
+  if(!HDV.length){alert('Chưa có dữ liệu!');return;}
+  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+  const list=myPhong?HDV.filter(r=>{const cb=CB.find(x=>x.maCB===r.maCB);return cb&&cb.phong===myPhong;}):HDV;
+  const wb=XLSX.utils.book_new();
+  const rows=[['Cán bộ','Mã AM','Phòng','Kỳ','Loại kỳ','Đầu kỳ (Tr.đ)','Tăng (Tr.đ)','Giảm (Tr.đ)','HĐV cuối kỳ (Tr.đ)','Ghi chú','Ngày nhập']];
+  list.forEach(r=>{
+    const cb=CB.find(x=>x.maCB===r.maCB)||{};
+    const hdv=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
+    rows.push([cb.tenCB||r.maCB,cb.maAM||'',cb.phong||'',r.ky||'',r.loaiKy==='tuan'?'Tuần':'Tháng',parseFloat(r.dauKy)||0,parseFloat(r.tang)||0,parseFloat(r.giam)||0,hdv,r.ghiChu||'',r.ngayNhap||'']);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[22,14,16,14,10,14,14,14,16,25,12].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws,'Huy động vốn');
+  XLSX.writeFile(wb,'HuyDongVon_'+new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')+'.xlsx');
+}
 
 </script>
 </html>
