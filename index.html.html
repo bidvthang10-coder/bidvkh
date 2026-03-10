@@ -3666,22 +3666,25 @@ function importHDVBC(inp){
     const iMA=hdr.indexOf('MA_AM'); const iKY=hdr.indexOf('KY');
     const iTH=hdr.indexOf('THUC_HIEN'); const iGC=hdr.indexOf('GHI_CHU');
     if(iMA<0||iKY<0||iTH<0){alert('File thiếu cột MA_AM, KY hoặc THUC_HIEN!');return;}
-    let added=0,updated=0;
+    let added=0,updated=0,skipped=0;
     rows.slice(1).forEach(r=>{
-      const maAM=String(r[iMA]||'').trim();
-      const ky=String(r[iKY]||'').trim();
-      const th=String(r[iTH]||'').trim();
-      const gc=iGC>=0?String(r[iGC]||'').trim():'';
-      if(!maAM||!ky||th==='')return;
-      // Tìm maCB từ maAM
-      const cb=CB.find(x=>x.maAM===maAM)||CB.find(x=>x.maCB===maAM);
-      if(!cb)return;
+      const maAM=String(r[iMA]??'').trim();
+      const ky=String(r[iKY]??'').trim();
+      const thRaw=r[iTH];
+      const th=thRaw===''||thRaw===null||thRaw===undefined?'':String(thRaw).trim();
+      const gc=iGC>=0?String(r[iGC]??'').trim():'';
+      if(!maAM||!ky||th===''){skipped++;return;}
+      // So sánh ép String cả 2 vế để tránh lỗi number vs string
+      const cb=CB.find(x=>String(x.maAM||'').trim()===maAM)
+             ||CB.find(x=>String(x.maCB||'').trim()===maAM);
+      if(!cb){skipped++;return;}
       const idx=HDVBC.findIndex(x=>x.maCB===cb.maCB&&x.ky===ky);
       if(idx>=0){HDVBC[idx]={...HDVBC[idx],thucHien:th,ghiChu:gc,ngayImport:new Date().toLocaleDateString('vi-VN')};updated++;}
       else{HDVBC.push({maCB:cb.maCB,ky,thucHien:th,ghiChu:gc,ngayImport:new Date().toLocaleDateString('vi-VN')});added++;}
     });
     sHDVBC(); renderHDVBC();
-    alert('✅ Import xong: thêm '+added+', cập nhật '+updated+' bản ghi.');
+    const msg=`✅ Import xong: thêm ${added}, cập nhật ${updated} bản ghi.`+(skipped>0?`\n⚠️ Bỏ qua ${skipped} dòng (trống hoặc không tìm thấy Mã AM trong hệ thống).`:'');
+    alert(msg);
   };
   reader.readAsArrayBuffer(file);
 }
