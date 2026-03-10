@@ -201,12 +201,13 @@ window._sPB    = async () => { await fsSet('kpi_app/pb',    { data: window.PB })
 window._sUsers = async () => { await fsSet('kpi_app/users', { data: window.USERS }); };
 window._sPG    = async () => { await fsSet('kpi_app/pg',    { data: window.PG }); };
 window._sHDV   = async () => { await fsSet('kpi_app/hdv',   { data: window.HDV }); };
+window._sHDVBC = async () => { await fsSet('kpi_app/hdvbc', { data: window.HDVBC }); };
 
 // ═══════════════════════════════════════════════════
 // REALTIME LISTENER — tự động cập nhật khi máy khác ghi
 // ═══════════════════════════════════════════════════
 function startRealtimeSync() {
-  const docs = ['cb','vt','bsc','pb','pg','users','hdv'];
+  const docs = ['cb','vt','bsc','pb','pg','users','hdv','hdvbc'];
   docs.forEach(key => {
     onSnapshot(doc(db, 'kpi_app', key), (snap) => {
       if (!snap.exists()) return;
@@ -218,6 +219,7 @@ function startRealtimeSync() {
       if (key === 'users') { window.USERS = val; USERS = val; }
       if (key === 'pg')    { window.PG    = val; }
       if (key === 'hdv')   { window.HDV   = Array.isArray(val)?val:[]; }
+      if (key === 'hdvbc') { window.HDVBC = Array.isArray(val)?val:[]; }
       // Re-render nếu app đang hiển thị
       if (document.getElementById('mainApp').style.display !== 'none') {
         updBadges();
@@ -237,9 +239,9 @@ function startRealtimeSync() {
 async function initApp() {
   showLoading('Đang kết nối Firebase...');
   try {
-    const [cbDoc, vtDoc, bscDoc, pbDoc, pgDoc, usersDoc, hdvDoc] = await Promise.all([
+    const [cbDoc, vtDoc, bscDoc, pbDoc, pgDoc, usersDoc, hdvDoc, hdvbcDoc] = await Promise.all([
       fsGet('kpi_app/cb'), fsGet('kpi_app/vt'), fsGet('kpi_app/bsc'),
-      fsGet('kpi_app/pb'), fsGet('kpi_app/pg'), fsGet('kpi_app/users'), fsGet('kpi_app/hdv')
+      fsGet('kpi_app/pb'), fsGet('kpi_app/pg'), fsGet('kpi_app/users'), fsGet('kpi_app/hdv'), fsGet('kpi_app/hdvbc')
     ]);
 
     // Nếu chưa có dữ liệu → ghi default lên Firestore
@@ -249,6 +251,7 @@ async function initApp() {
     window.PB    = pbDoc    ? pbDoc.data    : JSON.parse(JSON.stringify(D_PB));
     window.PG    = pgDoc    ? pgDoc.data    : [];
     window.HDV   = hdvDoc   ? (Array.isArray(hdvDoc.data)?hdvDoc.data:[]) : [];
+    window.HDVBC = hdvbcDoc ? (Array.isArray(hdvbcDoc.data)?hdvbcDoc.data:[]) : [];
     window.USERS = usersDoc ? usersDoc.data : JSON.parse(JSON.stringify(D_USERS)); USERS = window.USERS;
 
     if (!cbDoc)    await window.sCB();
@@ -348,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="sb-sec">Phân giao</div>
     <div class="sb-a" data-s="tao" onclick="go(this)"><span class="sb-ic">📨</span>Tạo phân giao</div>
     <div class="sb-a" data-s="hdv" onclick="go(this)"><span class="sb-ic">💰</span>Huy động vốn</div>
+    <div class="sb-a" data-s="hdvbc" onclick="go(this)"><span class="sb-ic">📈</span>Kết quả HĐV</div>
     <div class="sb-a" data-s="ds" onclick="go(this)"><span class="sb-ic">📋</span>Danh sách PG<span class="sb-bx" id="bPG">0</span></div>
     <div class="sb-sec" id="snQL">Quản lý</div>
     <div class="sb-a" data-s="pb" onclick="go(this)"><span class="sb-ic">🏢</span>Phòng ban<span class="sb-bx" id="bPB">0</span></div>
@@ -908,7 +912,13 @@ document.addEventListener('DOMContentLoaded', () => {
       <select class="fsel" id="hdvCBF" onchange="renderHDV()"><option value="">Tất cả cán bộ</option></select>
       <select class="fsel" id="hdvPhF" onchange="renderHDV()"><option value="">Tất cả phòng</option></select>
       <select class="fsel" id="hdvKyF" onchange="renderHDV()"><option value="">Tất cả kỳ</option></select>
-      <button class="btn btn-blue btn-sm" onclick="openAddHDV()">➕ Thêm kế hoạch</button>
+      <select class="fsel" id="hdvStF" onchange="renderHDV()">
+        <option value="">Tất cả trạng thái</option>
+        <option value="pending">⏳ Chờ duyệt</option>
+        <option value="approved">✅ Đã duyệt</option>
+        <option value="rejected">❌ Từ chối</option>
+      </select>
+      <button class="btn btn-blue btn-sm" id="btnAddHDV" onclick="openAddHDV()">➕ Thêm kế hoạch</button>
       <button class="btn btn-green btn-sm" onclick="exportHDV()">⬇ Xuất Excel</button>
     </div>
     <div class="card">
@@ -919,15 +929,36 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="tw"><table id="hdvTable">
         <thead><tr>
           <th>Cán bộ</th><th>Mã AM</th><th>Phòng</th><th>Kỳ</th><th>Loại kỳ</th>
+          <th style="text-align:right;color:#8a5e00">KH giao (KPI)</th>
           <th style="text-align:right">Đầu kỳ</th>
           <th style="text-align:right;color:#27ae60">+ Tăng</th>
           <th style="text-align:right;color:#c0392b">− Giảm</th>
-          <th style="text-align:right;color:#006B68;font-weight:700">= HĐV</th>
-          <th>Ghi chú</th><th>Ngày nhập</th><th></th>
+          <th style="text-align:right;color:#006B68;font-weight:700">= HĐV CB</th>
+          <th>Trạng thái</th><th>Ghi chú</th><th>Ngày nhập</th><th></th>
         </tr></thead>
         <tbody id="hdvTb"></tbody>
       </table></div>
       <div class="pag" id="hdvPag"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Duyệt / Từ chối HĐV (Trưởng) -->
+  <div class="ov" id="ov-hdvduyet">
+    <div class="modal" style="max-width:440px">
+      <div class="mhd">
+        <div class="mtt" id="hdvDuyetTitle">Duyệt kế hoạch HĐV</div>
+        <button class="mxb" onclick="closeM('ov-hdvduyet')">✕</button>
+      </div>
+      <div class="mbd">
+        <div id="hdvDuyetInfo" style="background:#f4f7fb;border-radius:8px;padding:10px 13px;margin-bottom:12px;font-size:12.5px"></div>
+        <label style="font-size:11.5px;font-weight:700;color:#445566">Ghi chú duyệt</label>
+        <input id="hdvDuyetGC" class="inp" placeholder="Ghi chú (bắt buộc khi từ chối)..." style="width:100%;margin-top:4px">
+      </div>
+      <div class="mft">
+        <button class="btn btn-gray" onclick="closeM('ov-hdvduyet')">Hủy</button>
+        <button class="btn btn-red" onclick="doHDVDuyet('rejected')">❌ Từ chối</button>
+        <button class="btn btn-blue" onclick="doHDVDuyet('approved')">✅ Duyệt</button>
+      </div>
     </div>
   </div>
 
@@ -982,6 +1013,49 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn btn-gray" onclick="closeM('ov-hdvmod')">Hủy</button>
         <button class="btn btn-blue" onclick="saveHDVMod()">💾 Lưu</button>
       </div>
+    </div>
+  </div>
+
+  <!-- BÁO CÁO KẾT QUẢ HĐV -->
+  <div class="sec" id="sec-hdvbc">
+    <div class="fbar">
+      <select class="fsel" id="hdvbcPhF" onchange="renderHDVBC()"><option value="">Tất cả phòng</option></select>
+      <select class="fsel" id="hdvbcKyF" onchange="renderHDVBC()"><option value="">Tất cả kỳ</option></select>
+      <select class="fsel" id="hdvbcXLF" onchange="renderHDVBC()">
+        <option value="">Tất cả xếp loại</option>
+        <option value="Vượt">Vượt KH</option>
+        <option value="Đạt">Đạt KH</option>
+        <option value="Không đạt">Không đạt</option>
+      </select>
+      <label class="btn btn-gold btn-sm" style="cursor:pointer">⬆ Import kết quả
+        <input type="file" accept=".xlsx,.xls" style="display:none" onchange="importHDVBC(this)">
+      </label>
+      <button class="btn btn-green btn-sm" onclick="exportHDVBC()">⬇ Xuất Excel</button>
+      <button class="btn btn-gray btn-sm" onclick="downloadHDVBCSample()">⬇ Mẫu import</button>
+    </div>
+    <div class="card" style="margin-bottom:10px">
+      <div style="padding:10px 14px;font-size:12px;color:#445566;background:#fef8e7;border-radius:8px;border:1px solid #f0d080">
+        ⚡ <strong>Xếp loại tự động:</strong> &lt; 90% KH = <span style="color:#c0392b;font-weight:700">Không đạt</span> · 90–100% = <span style="color:#27ae60;font-weight:700">Đạt</span> · &gt; 100% = <span style="color:#006B68;font-weight:700">Vượt</span>
+        &nbsp;|&nbsp; Import file Excel: cột <strong>MA_AM · KY · THUC_HIEN</strong>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="card-t">📈 Kết quả thực hiện HĐV</div>
+        <span id="hdvbcCnt" style="font-size:11px;color:#8fa3b8"></span>
+      </div>
+      <div class="tw"><table>
+        <thead><tr>
+          <th>Cán bộ</th><th>Mã AM</th><th>Phòng</th><th>Kỳ</th><th>Loại kỳ</th>
+          <th style="text-align:right;color:#8a5e00">KH (Tr.đ)</th>
+          <th style="text-align:right;color:#006B68">TH (Tr.đ)</th>
+          <th style="text-align:right">% TH/KH</th>
+          <th>Xếp loại</th>
+          <th>Ghi chú</th><th>Ngày import</th><th></th>
+        </tr></thead>
+        <tbody id="hdvbcTb"></tbody>
+      </table></div>
+      <div class="pag" id="hdvbcPag"></div>
     </div>
   </div>
 
@@ -1270,9 +1344,9 @@ function doLogout(){
 
 // Map: role → list of visible nav section keys
 const NAV_ALLOW = {
-  admin:  ['dash','kpi','bsc','tao','ds','hdv','pb','cb','users','imp','exp'],
-  truong: ['dash','tao','ds','hdv','cb','exp'],
-  cb:     ['dash','ds','hdv'],
+  admin:  ['dash','kpi','bsc','tao','ds','hdv','hdvbc','pb','cb','users','imp','exp'],
+  truong: ['dash','tao','ds','hdv','hdvbc','cb','exp'],
+  cb:     ['dash','ds','hdv','hdvbc'],
 };
 
 function applyPermissions(){
@@ -1389,8 +1463,8 @@ const fN=v=>{if(v===''||v===null||v===undefined)return'—';const n=Number(Strin
 // ═══════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════
-const NT={dash:'Dashboard',kpi:'Chỉ tiêu KPI',bsc:'Chỉ tiêu BSC',tao:'Tạo phân giao',ds:'Danh sách phân giao',hdv:'Huy động vốn',cb:'Cán bộ',pb:'Phòng ban',users:'Quản lý User',imp:'Import Excel',exp:'Xuất dữ liệu'};
-const NS={dash:'Tổng quan hệ thống',kpi:'Chỉ tiêu theo vị trí',bsc:'Chỉ tiêu theo mã BCT',tao:'Phân giao số kế hoạch cụ thể',ds:'Lịch sử phân giao',hdv:'Nhập kế hoạch huy động vốn theo tuần / tháng',cb:'Danh sách cán bộ AM',pb:'Danh sách phòng ban / PGD',users:'Tạo & phân quyền tài khoản',imp:'Import từ file Excel',exp:'Xuất Excel phân giao & bộ chỉ tiêu'};
+const NT={dash:'Dashboard',kpi:'Chỉ tiêu KPI',bsc:'Chỉ tiêu BSC',tao:'Tạo phân giao',ds:'Danh sách phân giao',hdv:'Huy động vốn',hdvbc:'Kết quả thực hiện HĐV',cb:'Cán bộ',pb:'Phòng ban',users:'Quản lý User',imp:'Import Excel',exp:'Xuất dữ liệu'};
+const NS={dash:'Tổng quan hệ thống',kpi:'Chỉ tiêu theo vị trí',bsc:'Chỉ tiêu theo mã BCT',tao:'Phân giao số kế hoạch cụ thể',ds:'Lịch sử phân giao',hdv:'Nhập kế hoạch huy động vốn theo tuần / tháng',hdvbc:'Báo cáo kết quả thực hiện huy động vốn',cb:'Danh sách cán bộ AM',pb:'Danh sách phòng ban / PGD',users:'Tạo & phân quyền tài khoản',imp:'Import từ file Excel',exp:'Xuất Excel phân giao & bộ chỉ tiêu'};
 
 function go(el){
   const s=el.dataset.s; if(!s)return;
@@ -1400,7 +1474,7 @@ function go(el){
   document.getElementById('sec-'+s).classList.add('show');
   document.getElementById('topT').textContent=NT[s]||s;
   document.getElementById('topS').textContent=NS[s]||'';
-  ({dash:renderDash,kpi:renderKPI,bsc:renderBSC,ds:renderDS,hdv:renderHDV,cb:renderCB,pb:renderPB,users:renderUsers,exp:renderExpPreview}[s]||function(){})();
+  ({dash:renderDash,kpi:renderKPI,bsc:renderBSC,ds:renderDS,hdv:renderHDV,hdvbc:renderHDVBC,cb:renderCB,pb:renderPB,users:renderUsers,exp:renderExpPreview}[s]||function(){})();
 }
 
 function openM(id){document.getElementById(id).classList.add('show');}
@@ -3065,77 +3139,52 @@ function _hdvScopedCB(){
   return myPhong ? CB.filter(x=>x.phong===myPhong&&x.trangThai==='HOAT_DONG') : CB.filter(x=>x.trangThai==='HOAT_DONG');
 }
 
-function renderHDV(){
-  const cbF=document.getElementById('hdvCBF').value||'';
-  const phF=document.getElementById('hdvPhF').value||'';
-  const kyF=document.getElementById('hdvKyF').value||'';
-  const scopedCB=_hdvScopedCB();
-  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
-  const allPhs=[...new Set(scopedCB.map(x=>x.phong))].sort();
-  const phEl=document.getElementById('hdvPhF');const curPh=phEl.value;
-  phEl.innerHTML='<option value="">Tất cả phòng</option>'+allPhs.map(p=>`<option value="${p}"${p===curPh?' selected':''}>${p}</option>`).join('');
-  const allCBs=scopedCB.filter(x=>!phF||x.phong===phF);
-  const cbEl=document.getElementById('hdvCBF');const curCB=cbEl.value;
-  cbEl.innerHTML='<option value="">Tất cả cán bộ</option>'+allCBs.map(x=>`<option value="${x.maCB}"${x.maCB===curCB?' selected':''}>${x.tenCB} (${x.phong})</option>`).join('');
-  const allKys=[...new Set(HDV.map(x=>x.ky).filter(Boolean))].sort();
-  const kyEl=document.getElementById('hdvKyF');const curKy=kyEl.value;
-  kyEl.innerHTML='<option value="">Tất cả kỳ</option>'+allKys.map(k=>`<option value="${k}"${k===curKy?' selected':''}>${k}</option>`).join('');
-  let list=HDV.filter(r=>{
-    if(myPhong){const cb=CB.find(x=>x.maCB===r.maCB);if(!cb||cb.phong!==myPhong)return false;}
-    if(cbF&&r.maCB!==cbF)return false;
-    if(phF){const cb=CB.find(x=>x.maCB===r.maCB);if(!cb||cb.phong!==phF)return false;}
-    if(kyF&&r.ky!==kyF)return false;
-    return true;
-  }).sort((a,b)=>(b.ngayNhap||'').localeCompare(a.ngayNhap||'')||0);
-  document.getElementById('hdvCnt').textContent=list.length+' bản ghi';
-  const pages=Math.max(1,Math.ceil(list.length/20));
-  if(hdvPg>pages)hdvPg=1;
-  const sl=list.slice((hdvPg-1)*20,hdvPg*20);
-  document.getElementById('hdvTb').innerHTML=sl.length?sl.map(r=>{
-    const cb=CB.find(x=>x.maCB===r.maCB)||{};
-    const hdv=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
-    const canEdit=isAdmin()||(isTruong()&&cb.phong===CU.phong);
-    return `<tr>
-      <td><strong>${cb.tenCB||r.maCB}</strong></td>
-      <td><span style="font-family:monospace;font-size:10.5px;background:#e0f5f3;color:#005452;padding:2px 6px;border-radius:4px">${cb.maAM||'—'}</span></td>
-      <td><span class="ph">${cb.phong||'—'}</span></td>
-      <td style="font-size:12px">${r.ky||'—'}</td>
-      <td><span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${r.loaiKy==='tuan'?'#e8f4fd':'#fef8e7'};color:${r.loaiKy==='tuan'?'#1a6fa0':'#8a5e00'};font-weight:700">${r.loaiKy==='tuan'?'Tuần':'Tháng'}</span></td>
-      <td style="text-align:right;font-size:12px;color:#445566">${_fmtN(r.dauKy)}</td>
-      <td style="text-align:right;font-size:12px;color:#27ae60">+${_fmtN(r.tang)}</td>
-      <td style="text-align:right;font-size:12px;color:#c0392b">-${_fmtN(r.giam)}</td>
-      <td style="text-align:right;font-size:13px;font-weight:800;color:#006B68">${_fmtN(hdv)}</td>
-      <td style="font-size:11px;color:#8fa3b8">${r.ghiChu||''}</td>
-      <td style="font-size:11px;color:#8fa3b8">${r.ngayNhap||''}</td>
-      <td>${canEdit?`<div style="display:flex;gap:3px">
-        <button class="btn btn-gray btn-xs" onclick="openEditHDV('${esc(r.id)}')">✏️</button>
-        <button class="btn btn-red btn-xs" onclick="delHDV('${esc(r.id)}')">🗑</button>
-      </div>`:'—'}</td>
-    </tr>`;
-  }).join(''):'<tr><td colspan="12"><div class="empty">📭 Chưa có dữ liệu huy động vốn</div></td></tr>';
-  renderPag('hdvPag',pages,hdvPg,p=>{hdvPg=p;renderHDV();});
-}
+
 
 function _fmtN(v){const n=parseFloat(v)||0;return n===0?'—':n.toLocaleString('vi-VN');}
+
+// Tính ngày đầu/cuối tuần ISO (thứ 2 → CN)
+function _weekRange(w, yr){
+  // Ngày đầu tuần 1 theo ISO: thứ 2 đầu tiên gần 1/1
+  const jan4 = new Date(yr,0,4); // 4/1 luôn thuộc tuần 1 ISO
+  const dayOfWeek = (jan4.getDay()+6)%7; // 0=Mon
+  const week1Mon = new Date(jan4); week1Mon.setDate(jan4.getDate()-dayOfWeek);
+  const mon = new Date(week1Mon); mon.setDate(week1Mon.getDate()+(w-1)*7);
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  const fmt=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  return `${fmt(mon)}–${fmt(sun)}`;
+}
+function _quarterOfMonth(m){ return Math.ceil(m/3); }
 
 function hdvGenKy(){
   const loai=document.getElementById('hdvMod_loaiKy').value;
   const yr=new Date().getFullYear();
   const el=document.getElementById('hdvMod_ky');
-  let opts=[];
+  let items=[]; // {value, label}
   if(loai==='thang'){
-    [-1,0,1].forEach(dy=>{for(let m=1;m<=12;m++) opts.push(`Tháng ${m}/${yr+dy}`);});
+    [-1,0,1].forEach(dy=>{
+      for(let m=1;m<=12;m++){
+        const q=_quarterOfMonth(m);
+        items.push({value:`Tháng ${m}/${yr+dy}`, label:`Tháng ${m}/${yr+dy} (Q${q})`});
+      }
+    });
   } else {
-    [-1,0].forEach(dy=>{for(let w=1;w<=53;w++) opts.push(`Tuần ${w}/${yr+dy}`);});
+    [-1,0].forEach(dy=>{
+      for(let w=1;w<=53;w++){
+        const rng=_weekRange(w,yr+dy);
+        items.push({value:`Tuần ${w}/${yr+dy}`, label:`Tuần ${w}/${yr+dy} (${rng})`});
+      }
+    });
   }
-  el.innerHTML=opts.map(o=>`<option value="${o}">${o}</option>`).join('');
+  el.innerHTML=items.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
   const now=new Date();
   if(loai==='thang'){
     el.value=`Tháng ${now.getMonth()+1}/${yr}`;
   } else {
-    const start=new Date(yr,0,1);
-    const wk=Math.ceil(((now-start)/86400000+start.getDay()+1)/7);
-    el.value=`Tuần ${Math.min(wk,53)}/${yr}`;
+    const jan4=new Date(yr,0,4);
+    const d0=(jan4.getDay()+6)%7;
+    const wk=Math.ceil((((now-new Date(jan4.setDate(jan4.getDate()-d0)))/86400000)+1)/7);
+    el.value=`Tuần ${Math.min(Math.max(wk,1),53)}/${yr}`;
   }
 }
 
@@ -3237,6 +3286,369 @@ function exportHDV(){
   ws['!cols']=[22,14,16,14,10,14,14,14,16,25,12].map(w=>({wch:w}));
   XLSX.utils.book_append_sheet(wb,ws,'Huy động vốn');
   XLSX.writeFile(wb,'HuyDongVon_'+new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')+'.xlsx');
+}
+
+// ── Hàm tra KH được giao từ PG KPI/BSC ──
+// Trích quý từ chuỗi kỳ "Tuần W/YYYY" hoặc "Tháng M/YYYY"
+function _kyToQuy(ky){
+  // "Tháng M/YYYY" → Q
+  const mMatch=ky.match(/Tháng\s+(\d+)\/(\d+)/i);
+  if(mMatch) return {quy:`Q${Math.ceil(parseInt(mMatch[1])/3)}`, yr:mMatch[2]};
+  // "Tuần W/YYYY" → tháng của tuần đó → Q
+  const wMatch=ky.match(/Tuần\s+(\d+)\/(\d+)/i);
+  if(wMatch){
+    const w=parseInt(wMatch[1]), yr=parseInt(wMatch[2]);
+    const jan4=new Date(yr,0,4);
+    const d0=(jan4.getDay()+6)%7;
+    const mon=new Date(jan4); mon.setDate(jan4.getDate()-d0+(w-1)*7);
+    const q=Math.ceil((mon.getMonth()+1)/3);
+    return {quy:`Q${q}`, yr:String(yr)};
+  }
+  return null;
+}
+
+function _hdvKHGiao(maCB, ky){
+  const cb=CB.find(x=>x.maCB===maCB); if(!cb)return null;
+  const keywords=['huy động','huy dong','hdv','huy_dong'];
+  const match=(s)=>keywords.some(k=>s.toLowerCase().includes(k));
+  const qInfo=_kyToQuy(ky);
+
+  // Hàm kiểm tra kỳ PG có khớp quý không
+  const pgKyMatchQuy=(pgKy)=>{
+    if(!qInfo||!pgKy)return false;
+    const pgQ=_kyToQuy(pgKy);
+    if(!pgQ)return false;
+    return pgQ.quy===qInfo.quy && pgQ.yr===qInfo.yr;
+  };
+
+  // Ưu tiên 1: khớp kỳ chính xác
+  // Ưu tiên 2: khớp theo quý
+  const tryFind=(pgList)=>{
+    for(const pg of pgList){
+      const item=(pg.items||[]).find(v=>match(v.chiTieu||''));
+      if(item&&item.soKH) return {soKH:parseFloat(item.soKH)||0, nguon:(pg.boCT||'KPI')+': '+item.chiTieu, pgId:pg.id};
+    }
+    return null;
+  };
+
+  // KPI — khớp chính xác trước
+  let pgKPI=PG.filter(p=>p.boCT==='KPI'&&p.ky===ky&&(p.maCB===maCB||p.target===cb.tenCB));
+  let r=tryFind(pgKPI); if(r) return r;
+  // KPI — khớp quý
+  if(qInfo){
+    pgKPI=PG.filter(p=>p.boCT==='KPI'&&pgKyMatchQuy(p.ky)&&(p.maCB===maCB||p.target===cb.tenCB));
+    r=tryFind(pgKPI); if(r) return {...r, nguon:r.nguon+' ('+qInfo.quy+')'};
+  }
+  // BSC — khớp chính xác
+  let pgBSC=PG.filter(p=>p.boCT==='BSC'&&p.ky===ky&&(p.target===cb.phong||p.phongGiao===cb.phong));
+  r=tryFind(pgBSC); if(r) return r;
+  // BSC — khớp quý
+  if(qInfo){
+    pgBSC=PG.filter(p=>p.boCT==='BSC'&&pgKyMatchQuy(p.ky)&&(p.target===cb.phong||p.phongGiao===cb.phong));
+    r=tryFind(pgBSC); if(r) return {...r, nguon:r.nguon+' ('+qInfo.quy+')'};
+  }
+  return null;
+}
+
+// ── Nâng cấp renderHDV: thêm KH giao + trạng thái duyệt ──
+function renderHDV(){
+  const cbF=document.getElementById('hdvCBF').value||'';
+  const phF=document.getElementById('hdvPhF').value||'';
+  const kyF=document.getElementById('hdvKyF').value||'';
+  const stF=document.getElementById('hdvStF')?document.getElementById('hdvStF').value:'';
+  const scopedCB=_hdvScopedCB();
+  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+
+  const allPhs=[...new Set(scopedCB.map(x=>x.phong))].sort();
+  const phEl=document.getElementById('hdvPhF');const curPh=phEl.value;
+  phEl.innerHTML='<option value="">Tất cả phòng</option>'+allPhs.map(p=>`<option value="${p}"${p===curPh?' selected':''}>${p}</option>`).join('');
+  const allCBs=scopedCB.filter(x=>!phF||x.phong===phF);
+  const cbEl=document.getElementById('hdvCBF');const curCB=cbEl.value;
+  cbEl.innerHTML='<option value="">Tất cả cán bộ</option>'+allCBs.map(x=>`<option value="${x.maCB}"${x.maCB===curCB?' selected':''}>${x.tenCB} (${x.phong})</option>`).join('');
+  const allKys=[...new Set(HDV.map(x=>x.ky).filter(Boolean))].sort();
+  const kyEl=document.getElementById('hdvKyF');const curKy=kyEl.value;
+  kyEl.innerHTML='<option value="">Tất cả kỳ</option>'+allKys.map(k=>`<option value="${k}"${k===curKy?' selected':''}>${k}</option>`).join('');
+
+  // Ẩn/hiện nút thêm: chỉ CB và Admin thêm được
+  const btnAdd=document.getElementById('btnAddHDV');
+  if(btnAdd) btnAdd.style.display=(isAdmin()||isCBRole()||isTruong())?'':'none';
+
+  // Scope CB: cán bộ chỉ thấy của mình
+  const myCBMaCB = isCBRole() ? (CB.find(x=>x.un===CU.un)||{}).maCB : null;
+
+  let list=HDV.filter(r=>{
+    if(myPhong){const cb=CB.find(x=>x.maCB===r.maCB);if(!cb||cb.phong!==myPhong)return false;}
+    if(myCBMaCB&&r.maCB!==myCBMaCB)return false;
+    if(cbF&&r.maCB!==cbF)return false;
+    if(phF){const cb=CB.find(x=>x.maCB===r.maCB);if(!cb||cb.phong!==phF)return false;}
+    if(kyF&&r.ky!==kyF)return false;
+    if(stF&&(r.status||'pending')!==stF)return false;
+    return true;
+  }).sort((a,b)=>(b.ngayNhap||'').localeCompare(a.ngayNhap||'')||0);
+
+  document.getElementById('hdvCnt').textContent=list.length+' bản ghi';
+  const pages=Math.max(1,Math.ceil(list.length/20));
+  if(hdvPg>pages)hdvPg=1;
+  const sl=list.slice((hdvPg-1)*20,hdvPg*20);
+
+  const stMap={
+    pending:'<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:#fef8e7;color:#8a5e00;font-weight:700">⏳ Chờ duyệt</span>',
+    approved:'<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:#e0f5f3;color:#005452;font-weight:700">✅ Đã duyệt</span>',
+    rejected:'<span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:#fdecea;color:#c0392b;font-weight:700">❌ Từ chối</span>',
+  };
+
+  document.getElementById('hdvTb').innerHTML=sl.length?sl.map(r=>{
+    const cb=CB.find(x=>x.maCB===r.maCB)||{};
+    const hdv=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
+    const khGiao=_hdvKHGiao(r.maCB,r.ky);
+    const st=r.status||'pending';
+    const canEdit=((isAdmin()||(isCBRole()&&r.maCB===myCBMaCB))&&st==='pending');
+    const canDuyet=isTruong()&&cb.phong===CU.phong&&st==='pending';
+    const gcDuyet=r.ghiChuDuyet?`<br><small style="color:#8fa3b8">${r.ghiChuDuyet}</small>`:'';
+    return `<tr>
+      <td><strong>${cb.tenCB||r.maCB}</strong></td>
+      <td><span style="font-family:monospace;font-size:10.5px;background:#e0f5f3;color:#005452;padding:2px 6px;border-radius:4px">${cb.maAM||'—'}</span></td>
+      <td><span class="ph">${cb.phong||'—'}</span></td>
+      <td style="font-size:12px">${r.ky||'—'}</td>
+      <td><span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${r.loaiKy==='tuan'?'#e8f4fd':'#fef8e7'};color:${r.loaiKy==='tuan'?'#1a6fa0':'#8a5e00'};font-weight:700">${r.loaiKy==='tuan'?'Tuần':'Tháng'}</span></td>
+      <td style="text-align:right;font-size:12px;color:#8a5e00">${khGiao?_fmtN(khGiao.soKH)+'<br><small style="color:#aaa;font-size:9.5px">'+khGiao.nguon+'</small>':'<span style="color:#d5dfe8">—</span>'}</td>
+      <td style="text-align:right;font-size:12px;color:#445566">${_fmtN(r.dauKy)}</td>
+      <td style="text-align:right;font-size:12px;color:#27ae60">+${_fmtN(r.tang)}</td>
+      <td style="text-align:right;font-size:12px;color:#c0392b">-${_fmtN(r.giam)}</td>
+      <td style="text-align:right;font-size:13px;font-weight:800;color:#006B68">${_fmtN(hdv)}</td>
+      <td>${stMap[st]||stMap.pending}${gcDuyet}</td>
+      <td style="font-size:11px;color:#8fa3b8">${r.ghiChu||''}</td>
+      <td style="font-size:11px;color:#8fa3b8">${r.ngayNhap||''}</td>
+      <td><div style="display:flex;gap:3px;flex-wrap:nowrap">
+        ${canDuyet?`<button class="btn btn-blue btn-xs" onclick="openHDVDuyet('${esc(r.id)}')">👁 Duyệt</button>`:''}
+        ${canEdit?`<button class="btn btn-gray btn-xs" onclick="openEditHDV('${esc(r.id)}')">✏️</button>
+        <button class="btn btn-red btn-xs" onclick="delHDV('${esc(r.id)}')">🗑</button>`:''}
+      </div></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="14"><div class="empty">📭 Chưa có dữ liệu</div></td></tr>';
+
+  renderPag('hdvPag',pages,hdvPg,p=>{hdvPg=p;renderHDV();});
+}
+
+// ── Duyệt HĐV ──
+let _hdvDuyetId=null;
+function openHDVDuyet(id){
+  const r=HDV.find(x=>x.id===id); if(!r)return;
+  _hdvDuyetId=id;
+  const cb=CB.find(x=>x.maCB===r.maCB)||{};
+  const hdv=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
+  const khGiao=_hdvKHGiao(r.maCB,r.ky);
+  document.getElementById('hdvDuyetTitle').textContent='Duyệt KH HĐV — '+cb.tenCB;
+  document.getElementById('hdvDuyetInfo').innerHTML=
+    `<div><b>${cb.tenCB}</b> · ${cb.phong} · ${r.ky}</div>`+
+    `<div style="margin-top:6px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+      <div style="text-align:center"><div style="font-size:9.5px;color:#8fa3b8">KH giao</div><div style="font-weight:700;color:#8a5e00">${khGiao?_fmtN(khGiao.soKH):'—'}</div></div>
+      <div style="text-align:center"><div style="font-size:9.5px;color:#8fa3b8">HĐV CB nhập</div><div style="font-weight:700;color:#006B68">${_fmtN(hdv)}</div></div>
+      <div style="text-align:center"><div style="font-size:9.5px;color:#8fa3b8">Đầu/Tăng/Giảm</div><div style="font-size:11.5px">${_fmtN(r.dauKy)} + ${_fmtN(r.tang)} - ${_fmtN(r.giam)}</div></div>
+    </div>`;
+  document.getElementById('hdvDuyetGC').value='';
+  openM('ov-hdvduyet');
+}
+function doHDVDuyet(action){
+  const r=HDV.find(x=>x.id===_hdvDuyetId); if(!r)return;
+  const gc=document.getElementById('hdvDuyetGC').value.trim();
+  if(action==='rejected'&&!gc){alert('Vui lòng nhập ghi chú khi từ chối!');return;}
+  r.status=action;
+  r.ghiChuDuyet=gc;
+  r.duyetBy=CU?CU.hn:'';
+  r.duyetAt=new Date().toLocaleDateString('vi-VN');
+  sHDV(); renderHDV(); closeM('ov-hdvduyet');
+}
+
+// ── HDVBC: Báo cáo kết quả ──
+let HDVBC=[];
+function sHDVBC(){ if(window._sHDVBC) window._sHDVBC(); }
+let hdvbcPg=1;
+
+function _xepLoai(pct){
+  if(pct===null||pct===undefined)return{xl:'—',cl:'#8fa3b8'};
+  if(pct>100)return{xl:'Vượt',cl:'#006B68'};
+  if(pct>=90)return{xl:'Đạt',cl:'#27ae60'};
+  return{xl:'Không đạt',cl:'#c0392b'};
+}
+
+function renderHDVBC(){
+  const phF=document.getElementById('hdvbcPhF').value||'';
+  const kyF=document.getElementById('hdvbcKyF').value||'';
+  const xlF=document.getElementById('hdvbcXLF').value||'';
+  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+
+  const allPhs=[...new Set(CB.map(x=>x.phong))].sort().filter(p=>!myPhong||p===myPhong);
+  const phEl=document.getElementById('hdvbcPhF');const curPh=phEl.value;
+  phEl.innerHTML='<option value="">Tất cả phòng</option>'+allPhs.map(p=>`<option value="${p}"${p===curPh?' selected':''}>${p}</option>`).join('');
+
+  const allKys=[...new Set([...HDVBC.map(x=>x.ky),...HDV.map(x=>x.ky)].filter(Boolean))].sort();
+  const kyEl=document.getElementById('hdvbcKyF');const curKy=kyEl.value;
+  kyEl.innerHTML='<option value="">Tất cả kỳ</option>'+allKys.map(k=>`<option value="${k}"${k===curKy?' selected':''}>${k}</option>`).join('');
+
+  // Join HDV (đã duyệt) với HDVBC (thực hiện)
+  const hdvApproved=HDV.filter(r=>(r.status||'pending')==='approved');
+  const rows=hdvApproved.map(r=>{
+    const cb=CB.find(x=>x.maCB===r.maCB)||{};
+    if(myPhong&&cb.phong!==myPhong)return null;
+    if(phF&&cb.phong!==phF)return null;
+    if(kyF&&r.ky!==kyF)return null;
+    const kh=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
+    const bc=HDVBC.find(x=>x.maCB===r.maCB&&x.ky===r.ky)||{};
+    const th=bc.thucHien!=null?parseFloat(bc.thucHien):null;
+    const pct=kh>0&&th!==null?Math.round(th/kh*100):null;
+    const xl=_xepLoai(pct);
+    if(xlF&&xl.xl!==xlF)return null;
+    return {r,cb,kh,th,pct,xl,bc};
+  }).filter(Boolean);
+
+  document.getElementById('hdvbcCnt').textContent=rows.length+' cán bộ';
+  const pages=Math.max(1,Math.ceil(rows.length/20));
+  if(hdvbcPg>pages)hdvbcPg=1;
+  const sl=rows.slice((hdvbcPg-1)*20,hdvbcPg*20);
+
+  document.getElementById('hdvbcTb').innerHTML=sl.length?sl.map(({r,cb,kh,th,pct,xl,bc})=>{
+    const pctStr=pct!==null?pct+'%':'—';
+    const thStr=th!==null?_fmtN(th):'<span style="color:#d5dfe8">Chưa có</span>';
+    const canDel=isAdmin()||(isTruong()&&cb.phong===CU.phong);
+    return `<tr>
+      <td><strong>${cb.tenCB||r.maCB}</strong></td>
+      <td><span style="font-family:monospace;font-size:10.5px;background:#e0f5f3;color:#005452;padding:2px 6px;border-radius:4px">${cb.maAM||'—'}</span></td>
+      <td><span class="ph">${cb.phong||'—'}</span></td>
+      <td style="font-size:12px">${r.ky||'—'}</td>
+      <td><span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${r.loaiKy==='tuan'?'#e8f4fd':'#fef8e7'};color:${r.loaiKy==='tuan'?'#1a6fa0':'#8a5e00'};font-weight:700">${r.loaiKy==='tuan'?'Tuần':'Tháng'}</span></td>
+      <td style="text-align:right;font-weight:700;color:#8a5e00">${_fmtN(kh)}</td>
+      <td style="text-align:right;font-weight:700;color:#006B68">${thStr}</td>
+      <td style="text-align:right;font-weight:700;color:${xl.cl}">${pctStr}</td>
+      <td><span style="font-size:11px;padding:3px 9px;border-radius:10px;background:${xl.xl==='Vượt'?'#e0f5f3':xl.xl==='Đạt'?'#eafaf1':'#fdecea'};color:${xl.cl};font-weight:700">${xl.xl}</span></td>
+      <td style="font-size:11px;color:#8fa3b8">${bc.ghiChu||''}</td>
+      <td style="font-size:11px;color:#8fa3b8">${bc.ngayImport||''}</td>
+      <td>${canDel&&bc.thucHien!=null?`<button class="btn btn-red btn-xs" onclick="delHDVBC('${esc(r.maCB)}','${esc(r.ky)}')">🗑</button>`:'—'}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="12"><div class="empty">📭 Chưa có dữ liệu — import file kết quả thực hiện để xem báo cáo</div></td></tr>';
+
+  renderPag('hdvbcPag',pages,hdvbcPg,p=>{hdvbcPg=p;renderHDVBC();});
+}
+
+function delHDVBC(maCB,ky){
+  if(!confirm('Xóa số thực hiện của kỳ '+ky+'?'))return;
+  HDVBC=HDVBC.filter(x=>!(x.maCB===maCB&&x.ky===ky));
+  sHDVBC(); renderHDVBC();
+}
+
+function downloadHDVBCSample(){
+  const wb=XLSX.utils.book_new();
+  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+  const cbList=myPhong?CB.filter(x=>x.phong===myPhong&&x.trangThai==='HOAT_DONG'):CB.filter(x=>x.trangThai==='HOAT_DONG');
+
+  // Lấy danh sách kỳ duy nhất từ HDV đã duyệt (approved) — đây là kỳ hợp lệ để nhập TH
+  const approvedKys=[...new Set(
+    HDV.filter(r=>(r.status||'pending')==='approved'&&(!myPhong||(CB.find(x=>x.maCB===r.maCB)||{}).phong===myPhong))
+      .map(r=>r.ky)
+  )].sort();
+  // Nếu chưa có kỳ nào được duyệt, lấy tất cả kỳ trong HDV
+  const kyList=approvedKys.length>0 ? approvedKys :
+    [...new Set(HDV.filter(r=>!myPhong||(CB.find(x=>x.maCB===r.maCB)||{}).phong===myPhong).map(r=>r.ky))].sort();
+
+  // Sheet 1: dữ liệu nhập — điền sẵn MA_AM + KY từ HDV đã duyệt
+  const rows=[['MA_AM','KY','THUC_HIEN','GHI_CHU']];
+  if(approvedKys.length>0){
+    // Điền sẵn từng cặp CB × kỳ đã duyệt
+    HDV.filter(r=>(r.status||'pending')==='approved')
+      .filter(r=>!myPhong||(CB.find(x=>x.maCB===r.maCB)||{}).phong===myPhong)
+      .sort((a,b)=>a.ky.localeCompare(b.ky)||a.maCB.localeCompare(b.maCB))
+      .forEach(r=>{
+        const cb=CB.find(x=>x.maCB===r.maCB)||{};
+        rows.push([cb.maAM||r.maCB, r.ky, '', '']);
+      });
+  } else {
+    // Chưa có kỳ duyệt: điền sẵn CB + kỳ mặc định
+    const defaultKy=kyList[0]||('Tuần 1/'+new Date().getFullYear());
+    cbList.forEach(cb=>rows.push([cb.maAM||cb.maCB, defaultKy, '', '']));
+  }
+
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[16,22,16,28].map(w=>({wch:w}));
+
+  // Data validation dropdown cho cột KY (cột B, từ B2 trở đi) — dùng sheet tham chiếu
+  if(kyList.length>0){
+    // Sheet 2: danh sách kỳ hợp lệ (để tham chiếu validation)
+    const wsKy=XLSX.utils.aoa_to_sheet([['KY_HOP_LE'],...kyList.map(k=>[k])]);
+    wsKy['!cols']=[{wch:22}];
+    XLSX.utils.book_append_sheet(wb,wsKy,'DS_Ky');
+
+    // Thêm data validation vào cột B (index 1), từ hàng 2 đến hàng rows.length+10
+    if(!ws['!dataValidation']) ws['!dataValidation']=[];
+    ws['!dataValidation'].push({
+      type:'list',
+      sqref:`B2:B${rows.length+20}`,
+      formula1:`DS_Ky!$A$2:$A$${kyList.length+1}`,
+      showDropDown:false,
+      showErrorMessage:true,
+      errorTitle:'Kỳ không hợp lệ',
+      error:'Vui lòng chọn kỳ từ danh sách (khớp với kỳ kế hoạch đã nhập)'
+    });
+  }
+
+  XLSX.utils.book_append_sheet(wb,ws,'KQ_HuyDongVon');
+  // Đưa sheet nhập liệu lên đầu
+  wb.SheetNames=[wb.SheetNames[wb.SheetNames.length-1],...wb.SheetNames.slice(0,-1)];
+
+  XLSX.writeFile(wb,'IMPORT_KetQua_HDV.xlsx');
+}
+
+function importHDVBC(inp){
+  const file=inp.files[0]; if(!file)return; inp.value='';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const wb=XLSX.read(e.target.result,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    if(!rows.length){alert('File trống!');return;}
+    const hdr=rows[0].map(h=>String(h||'').trim().toUpperCase());
+    const iMA=hdr.indexOf('MA_AM'); const iKY=hdr.indexOf('KY');
+    const iTH=hdr.indexOf('THUC_HIEN'); const iGC=hdr.indexOf('GHI_CHU');
+    if(iMA<0||iKY<0||iTH<0){alert('File thiếu cột MA_AM, KY hoặc THUC_HIEN!');return;}
+    let added=0,updated=0;
+    rows.slice(1).forEach(r=>{
+      const maAM=String(r[iMA]||'').trim();
+      const ky=String(r[iKY]||'').trim();
+      const th=String(r[iTH]||'').trim();
+      const gc=iGC>=0?String(r[iGC]||'').trim():'';
+      if(!maAM||!ky||th==='')return;
+      // Tìm maCB từ maAM
+      const cb=CB.find(x=>x.maAM===maAM)||CB.find(x=>x.maCB===maAM);
+      if(!cb)return;
+      const idx=HDVBC.findIndex(x=>x.maCB===cb.maCB&&x.ky===ky);
+      if(idx>=0){HDVBC[idx]={...HDVBC[idx],thucHien:th,ghiChu:gc,ngayImport:new Date().toLocaleDateString('vi-VN')};updated++;}
+      else{HDVBC.push({maCB:cb.maCB,ky,thucHien:th,ghiChu:gc,ngayImport:new Date().toLocaleDateString('vi-VN')});added++;}
+    });
+    sHDVBC(); renderHDVBC();
+    alert('✅ Import xong: thêm '+added+', cập nhật '+updated+' bản ghi.');
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function exportHDVBC(){
+  const myPhong=(isTruong()||isCBRole())?CU.phong:null;
+  const hdvApproved=HDV.filter(r=>(r.status||'pending')==='approved');
+  const rows=[['Cán bộ','Mã AM','Phòng','Kỳ','Loại kỳ','KH (Tr.đ)','TH (Tr.đ)','% TH/KH','Xếp loại','Ghi chú','Ngày import']];
+  hdvApproved.forEach(r=>{
+    const cb=CB.find(x=>x.maCB===r.maCB)||{};
+    if(myPhong&&cb.phong!==myPhong)return;
+    const kh=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
+    const bc=HDVBC.find(x=>x.maCB===r.maCB&&x.ky===r.ky)||{};
+    const th=bc.thucHien!=null?parseFloat(bc.thucHien):null;
+    const pct=kh>0&&th!==null?Math.round(th/kh*100):null;
+    const xl=_xepLoai(pct);
+    rows.push([cb.tenCB||r.maCB,cb.maAM||'',cb.phong||'',r.ky||'',r.loaiKy==='tuan'?'Tuần':'Tháng',kh,th!=null?th:'',pct!=null?pct+'%':'',xl.xl,bc.ghiChu||'',bc.ngayImport||'']);
+  });
+  if(rows.length===1){alert('Chưa có dữ liệu!');return;}
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[22,14,16,14,10,14,14,10,12,25,12].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws,'KQ_HuydongVon');
+  XLSX.writeFile(wb,'KetQua_HDV_'+new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')+'.xlsx');
 }
 
 </script>
