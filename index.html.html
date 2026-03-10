@@ -3132,6 +3132,20 @@ function downloadSamplePG(type){
 // ═══════════════════════════════════════════════════
 let HDV = [];
 function sHDV(){ if(window._sHDV) window._sHDV(); }
+
+// Debug: gọi debugHDV() trong Console để kiểm tra tại sao KH giao không hiển thị
+window.debugHDV=function(maCB, ky){
+  const cb=CB.find(x=>x.maCB===maCB);
+  console.log('CB:', cb);
+  console.log('Kỳ HĐV:', ky, '→ quy:', _kyToQuy(ky));
+  const pgCB=PG.filter(p=>p.boCT==='KPI'&&(p.maCB===maCB||p.target===(cb||{}).tenCB));
+  console.log('PG KPI của CB này:', pgCB.map(p=>({ky:p.ky, status:p.status, items:p.items?.map(v=>({chiTieu:v.chiTieu,soKH:v.soKH}))})));
+  const pgQuy=PG.filter(p=>p.boCT==='KPI');
+  const qInfo=_kyToQuy(ky);
+  console.log('Tất cả kỳ trong PG KPI:', [...new Set(pgQuy.map(p=>p.ky))]);
+  console.log('qInfo:', qInfo);
+  console.log('Kết quả _hdvKHGiao:', _hdvKHGiao(maCB, ky));
+};
 let hdvPg=1;
 
 function _hdvScopedCB(){
@@ -3345,8 +3359,9 @@ function _kyToQuy(ky){
 
 function _hdvKHGiao(maCB, ky){
   const cb=CB.find(x=>x.maCB===maCB); if(!cb)return null;
-  const keywords=['huy động','huy dong','hdv','huy_dong'];
-  const match=(s)=>keywords.some(k=>s.toLowerCase().includes(k));
+  // Tên chỉ tiêu HĐV chính xác trong bảng KPI
+  const HDV_CHITIEU = 'Huy động vốn cuối kỳ';
+  const match=(s)=>s&&s.trim()===HDV_CHITIEU;
   const qInfo=_kyToQuy(ky);
 
   // Hàm kiểm tra kỳ PG có khớp với kỳ HĐV không (theo quý hoặc cả năm)
