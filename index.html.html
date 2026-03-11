@@ -218,8 +218,8 @@ function startRealtimeSync() {
       if (key === 'pb')    { window.PB    = val; }
       if (key === 'users') { window.USERS = val; USERS = val; }
       if (key === 'pg')    { window.PG    = val; }
-      if (key === 'hdv')   { window.HDV   = Array.isArray(val)?val:[]; }
-      if (key === 'hdvbc') { window.HDVBC = Array.isArray(val)?val:[]; }
+      if (key === 'hdv')   { window.HDV   = Array.isArray(val)?val:[]; try{HDV=window.HDV;}catch(e){} }
+      if (key === 'hdvbc') { window.HDVBC = Array.isArray(val)?val:[]; try{HDVBC=window.HDVBC;}catch(e){} }
       // Re-render nếu app đang hiển thị
       if (document.getElementById('mainApp').style.display !== 'none') {
         updBadges();
@@ -252,6 +252,8 @@ async function initApp() {
     window.PG    = pgDoc    ? pgDoc.data    : [];
     window.HDV   = hdvDoc   ? (Array.isArray(hdvDoc.data)?hdvDoc.data:[]) : [];
     window.HDVBC = hdvbcDoc ? (Array.isArray(hdvbcDoc.data)?hdvbcDoc.data:[]) : [];
+    if(typeof HDV   !=='undefined') HDV   = window.HDV;
+    if(typeof HDVBC !=='undefined') HDVBC = window.HDVBC;
     window.USERS = usersDoc ? usersDoc.data : JSON.parse(JSON.stringify(D_USERS)); USERS = window.USERS;
 
     if (!cbDoc)    await window.sCB();
@@ -1047,6 +1049,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="tw"><table>
         <thead><tr>
           <th>Cán bộ</th><th>Mã AM</th><th>Phòng</th><th>Kỳ</th><th>Loại kỳ</th>
+          <th>Trạng thái KH</th>
           <th style="text-align:right;color:#8a5e00">KH (Tr.đ)</th>
           <th style="text-align:right;color:#006B68">TH (Tr.đ)</th>
           <th style="text-align:right">% TH/KH</th>
@@ -3130,8 +3133,10 @@ function downloadSamplePG(type){
 // ═══════════════════════════════════════════════════
 // HUY ĐỘNG VỐN
 // ═══════════════════════════════════════════════════
-let HDV = [];
-function sHDV(){ if(window._sHDV) window._sHDV(); }
+// Dùng var để HDV/HDVBC là biến toàn cục, đồng bộ với window.HDV từ Firebase module
+var HDV = window.HDV || [];
+var HDVBC = window.HDVBC || [];
+function sHDV(){  window.HDV=HDV;   if(window._sHDV)   window._sHDV();   }
 
 // Debug: gọi debugHDV() trong Console để kiểm tra tại sao KH giao không hiển thị
 window.debugHDV=function(maCB, ky){
@@ -3518,8 +3523,7 @@ function doHDVDuyet(action){
 }
 
 // ── HDVBC: Báo cáo kết quả ──
-let HDVBC=[];
-function sHDVBC(){ if(window._sHDVBC) window._sHDVBC(); }
+function sHDVBC(){ window.HDVBC=HDVBC; if(window._sHDVBC) window._sHDVBC(); }
 let hdvbcPg=1;
 
 function _xepLoai(pct){
@@ -3543,16 +3547,15 @@ function renderHDVBC(){
   const kyEl=document.getElementById('hdvbcKyF');const curKy=kyEl.value;
   kyEl.innerHTML='<option value="">Tất cả kỳ</option>'+allKys.map(k=>`<option value="${k}"${k===curKy?' selected':''}>${k}</option>`).join('');
 
-  // Join HDV (đã duyệt) với HDVBC (thực hiện)
-  const hdvApproved=HDV.filter(r=>(r.status||'pending')==='approved');
-  const rows=hdvApproved.map(r=>{
+  // Join tất cả HDV với HDVBC (không giới hạn trạng thái duyệt)
+  const rows=HDV.map(r=>{
     const cb=CB.find(x=>x.maCB===r.maCB)||{};
     if(myPhong&&cb.phong!==myPhong)return null;
     if(phF&&cb.phong!==phF)return null;
     if(kyF&&r.ky!==kyF)return null;
     const kh=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
     const bc=HDVBC.find(x=>x.maCB===r.maCB&&x.ky===r.ky)||{};
-    const th=bc.thucHien!=null?parseFloat(bc.thucHien):null;
+    const th=bc.thucHien!=null&&bc.thucHien!==''?parseFloat(bc.thucHien):null;
     const pct=kh>0&&th!==null?Math.round(th/kh*100):null;
     const xl=_xepLoai(pct);
     if(xlF&&xl.xl!==xlF)return null;
@@ -3564,6 +3567,12 @@ function renderHDVBC(){
   if(hdvbcPg>pages)hdvbcPg=1;
   const sl=rows.slice((hdvbcPg-1)*20,hdvbcPg*20);
 
+  const stBadge={
+    approved:'<span style="font-size:10px;padding:2px 6px;border-radius:8px;background:#e0f5f3;color:#005452;font-weight:700">✅ Đã duyệt</span>',
+    rejected:'<span style="font-size:10px;padding:2px 6px;border-radius:8px;background:#fdecea;color:#c0392b;font-weight:700">❌ Từ chối</span>',
+    pending:'<span style="font-size:10px;padding:2px 6px;border-radius:8px;background:#fef8e7;color:#8a5e00;font-weight:700">⏳ Chờ duyệt</span>',
+  };
+
   document.getElementById('hdvbcTb').innerHTML=sl.length?sl.map(({r,cb,kh,th,pct,xl,bc})=>{
     const pctStr=pct!==null?pct+'%':'—';
     const thStr=th!==null?_fmtN(th):'<span style="color:#d5dfe8">Chưa có</span>';
@@ -3574,15 +3583,16 @@ function renderHDVBC(){
       <td><span class="ph">${cb.phong||'—'}</span></td>
       <td style="font-size:12px">${r.ky||'—'}</td>
       <td><span style="font-size:10.5px;padding:2px 7px;border-radius:10px;background:${r.loaiKy==='tuan'?'#e8f4fd':'#fef8e7'};color:${r.loaiKy==='tuan'?'#1a6fa0':'#8a5e00'};font-weight:700">${r.loaiKy==='tuan'?'Tuần':'Tháng'}</span></td>
+      <td>${stBadge[r.status||'pending']}</td>
       <td style="text-align:right;font-weight:700;color:#8a5e00">${_fmtN(kh)}</td>
       <td style="text-align:right;font-weight:700;color:#006B68">${thStr}</td>
       <td style="text-align:right;font-weight:700;color:${xl.cl}">${pctStr}</td>
-      <td><span style="font-size:11px;padding:3px 9px;border-radius:10px;background:${xl.xl==='Vượt'?'#e0f5f3':xl.xl==='Đạt'?'#eafaf1':'#fdecea'};color:${xl.cl};font-weight:700">${xl.xl}</span></td>
+      <td><span style="font-size:11px;padding:3px 9px;border-radius:10px;background:${xl.xl==='Vượt'?'#e0f5f3':xl.xl==='Đạt'?'#eafaf1':xl.xl==='Không đạt'?'#fdecea':'#f4f7fb'};color:${xl.cl};font-weight:700">${xl.xl}</span></td>
       <td style="font-size:11px;color:#8fa3b8">${bc.ghiChu||''}</td>
       <td style="font-size:11px;color:#8fa3b8">${bc.ngayImport||''}</td>
-      <td>${canDel&&bc.thucHien!=null?`<button class="btn btn-red btn-xs" onclick="delHDVBC('${esc(r.maCB)}','${esc(r.ky)}')">🗑</button>`:'—'}</td>
+      <td>${canDel&&bc.thucHien!=null&&bc.thucHien!==''?`<button class="btn btn-red btn-xs" onclick="delHDVBC('${esc(r.maCB)}','${esc(r.ky)}')">🗑</button>`:'—'}</td>
     </tr>`;
-  }).join(''):'<tr><td colspan="12"><div class="empty">📭 Chưa có dữ liệu — import file kết quả thực hiện để xem báo cáo</div></td></tr>';
+  }).join(''):'<tr><td colspan="13"><div class="empty">📭 Chưa có dữ liệu — import file kết quả thực hiện để xem báo cáo</div></td></tr>';
 
   renderPag('hdvbcPag',pages,hdvbcPg,p=>{hdvbcPg=p;renderHDVBC();});
 }
@@ -3691,22 +3701,22 @@ function importHDVBC(inp){
 
 function exportHDVBC(){
   const myPhong=(isTruong()||isCBRole())?CU.phong:null;
-  const hdvApproved=HDV.filter(r=>(r.status||'pending')==='approved');
-  const rows=[['Cán bộ','Mã AM','Phòng','Kỳ','Loại kỳ','KH (Tr.đ)','TH (Tr.đ)','% TH/KH','Xếp loại','Ghi chú','Ngày import']];
-  hdvApproved.forEach(r=>{
+  const stMap2={approved:'Đã duyệt',rejected:'Từ chối',pending:'Chờ duyệt'};
+  const rows=[['Cán bộ','Mã AM','Phòng','Kỳ','Loại kỳ','Trạng thái KH','KH (Tr.đ)','TH (Tr.đ)','% TH/KH','Xếp loại','Ghi chú','Ngày import']];
+  HDV.forEach(r=>{
     const cb=CB.find(x=>x.maCB===r.maCB)||{};
     if(myPhong&&cb.phong!==myPhong)return;
     const kh=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
     const bc=HDVBC.find(x=>x.maCB===r.maCB&&x.ky===r.ky)||{};
-    const th=bc.thucHien!=null?parseFloat(bc.thucHien):null;
+    const th=bc.thucHien!=null&&bc.thucHien!==''?parseFloat(bc.thucHien):null;
     const pct=kh>0&&th!==null?Math.round(th/kh*100):null;
     const xl=_xepLoai(pct);
-    rows.push([cb.tenCB||r.maCB,cb.maAM||'',cb.phong||'',r.ky||'',r.loaiKy==='tuan'?'Tuần':'Tháng',kh,th!=null?th:'',pct!=null?pct+'%':'',xl.xl,bc.ghiChu||'',bc.ngayImport||'']);
+    rows.push([cb.tenCB||r.maCB,cb.maAM||'',cb.phong||'',r.ky||'',r.loaiKy==='tuan'?'Tuần':'Tháng',stMap2[r.status||'pending'],kh,th!=null?th:'',pct!=null?pct+'%':'',xl.xl,bc.ghiChu||'',bc.ngayImport||'']);
   });
   if(rows.length===1){alert('Chưa có dữ liệu!');return;}
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[22,14,16,14,10,14,14,10,12,25,12].map(w=>({wch:w}));
+  ws['!cols']=[22,14,16,14,10,12,14,14,10,12,25,12].map(w=>({wch:w}));
   XLSX.utils.book_append_sheet(wb,ws,'KQ_HuydongVon');
   XLSX.writeFile(wb,'KetQua_HDV_'+new Date().toLocaleDateString('vi-VN').replace(/\//g,'-')+'.xlsx');
 }
