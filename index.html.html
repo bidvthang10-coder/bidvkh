@@ -3466,6 +3466,7 @@ function renderHDV(){
     const st=r.status||'pending';
     const canEdit=((isAdmin()||(isCBRole()&&r.maCB===myCBMaCB))&&st==='pending');
     const canDuyet=isTruong()&&cb.phong===CU.phong&&st==='pending';
+    const canHuyDuyet=(isTruong()&&cb.phong===CU.phong||isAdmin())&&st==='approved';
     const gcDuyet=r.ghiChuDuyet?`<br><small style="color:#8fa3b8">${r.ghiChuDuyet}</small>`:'';
     return `<tr>
       <td><strong>${cb.tenCB||r.maCB}</strong></td>
@@ -3483,6 +3484,7 @@ function renderHDV(){
       <td style="font-size:11px;color:#8fa3b8">${r.ngayNhap||''}</td>
       <td><div style="display:flex;gap:3px;flex-wrap:nowrap">
         ${canDuyet?`<button class="btn btn-blue btn-xs" onclick="openHDVDuyet('${esc(r.id)}')">👁 Duyệt</button>`:''}
+        ${canHuyDuyet?`<button class="btn btn-xs" style="background:#fef8e7;color:#8a5e00;border:1px solid #f0d080" onclick="huyDuyetHDV('${esc(r.id)}')">↩ Hủy duyệt</button>`:''}
         ${canEdit?`<button class="btn btn-gray btn-xs" onclick="openEditHDV('${esc(r.id)}')">✏️</button>
         <button class="btn btn-red btn-xs" onclick="delHDV('${esc(r.id)}')">🗑</button>`:''}
       </div></td>
@@ -3520,6 +3522,17 @@ function doHDVDuyet(action){
   r.duyetBy=CU?CU.hn:'';
   r.duyetAt=new Date().toLocaleDateString('vi-VN');
   sHDV(); renderHDV(); closeM('ov-hdvduyet');
+}
+
+function huyDuyetHDV(id){
+  const r=HDV.find(x=>x.id===id); if(!r)return;
+  const cb=CB.find(x=>x.maCB===r.maCB)||{};
+  if(!confirm('Hủy duyệt kế hoạch HĐV của '+( cb.tenCB||r.maCB)+' kỳ '+r.ky+'?\nKế hoạch sẽ chuyển về trạng thái Chờ duyệt.'))return;
+  r.status='pending';
+  r.ghiChuDuyet='';
+  r.duyetBy='';
+  r.duyetAt='';
+  sHDV(); renderHDV();
 }
 
 // ── HDVBC: Báo cáo kết quả ──
