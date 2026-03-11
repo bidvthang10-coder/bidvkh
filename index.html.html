@@ -3235,6 +3235,7 @@ function openAddHDV(){
   const myPhong=(isTruong()||isCBRole())?CU.phong:null;
   const cbList=myPhong?CB.filter(x=>x.phong===myPhong&&x.trangThai==='HOAT_DONG'):CB.filter(x=>x.trangThai==='HOAT_DONG');
   document.getElementById('hdvMod_cb').innerHTML='<option value="">-- Chọn cán bộ --</option>'+cbList.map(x=>`<option value="${x.maCB}">${x.tenCB} · ${x.phong}</option>`).join('');
+  ['hdvMod_cb','hdvMod_loaiKy','hdvMod_ky'].forEach(id=>document.getElementById(id).disabled=false);
   ['hdvMod_dau','hdvMod_tang','hdvMod_giam','hdvMod_hdv','hdvMod_gc'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('hdvMod_loaiKy').value='tuan';
   hdvGenKy();
@@ -3250,9 +3251,14 @@ function openEditHDV(id){
   const myPhong=(isTruong()||isCBRole())?CU.phong:null;
   const cbList=myPhong?CB.filter(x=>x.phong===myPhong&&x.trangThai==='HOAT_DONG'):CB.filter(x=>x.trangThai==='HOAT_DONG');
   document.getElementById('hdvMod_cb').innerHTML='<option value="">-- Chọn cán bộ --</option>'+cbList.map(x=>`<option value="${x.maCB}"${x.maCB===r.maCB?' selected':''}>${x.tenCB} · ${x.phong}</option>`).join('');
+  // CB chỉ được sửa số liệu, không đổi người
+  document.getElementById('hdvMod_cb').disabled = isCBRole();
   document.getElementById('hdvMod_loaiKy').value=r.loaiKy||'tuan';
+  // CB không được đổi kỳ
+  document.getElementById('hdvMod_loaiKy').disabled = isCBRole();
   hdvGenKy();
   document.getElementById('hdvMod_ky').value=r.ky||'';
+  document.getElementById('hdvMod_ky').disabled = isCBRole();
   document.getElementById('hdvMod_dau').value=r.dauKy||'';
   document.getElementById('hdvMod_tang').value=r.tang||'';
   document.getElementById('hdvMod_giam').value=r.giam||'';
@@ -3464,9 +3470,10 @@ function renderHDV(){
     const hdv=(parseFloat(r.dauKy)||0)+(parseFloat(r.tang)||0)-(parseFloat(r.giam)||0);
     const khGiao=_hdvKHGiao(r.maCB,r.ky);
     const st=r.status||'pending';
-    const canEdit=((isAdmin()||(isCBRole()&&r.maCB===myCBMaCB))&&st==='pending');
-    const canDuyet=isTruong()&&cb.phong===CU.phong&&st==='pending';
-    const canHuyDuyet=(isTruong()&&cb.phong===CU.phong||isAdmin())&&st==='approved';
+    const canSua=st==='pending'&&((isAdmin())||(isTruong()&&cb.phong===CU.phong)||(isCBRole()&&r.maCB===myCBMaCB));
+    const canXoa=st==='pending'&&(isAdmin()||(isTruong()&&cb.phong===CU.phong));
+    const canDuyet=st==='pending'&&(isTruong()&&!isCBRole()&&cb.phong===CU.phong||isAdmin());
+    const canHuyDuyet=st==='approved'&&((isTruong()&&!isCBRole()&&cb.phong===CU.phong)||isAdmin());
     const gcDuyet=r.ghiChuDuyet?`<br><small style="color:#8fa3b8">${r.ghiChuDuyet}</small>`:'';
     return `<tr>
       <td><strong>${cb.tenCB||r.maCB}</strong></td>
@@ -3485,8 +3492,8 @@ function renderHDV(){
       <td><div style="display:flex;gap:3px;flex-wrap:nowrap">
         ${canDuyet?`<button class="btn btn-blue btn-xs" onclick="openHDVDuyet('${esc(r.id)}')">👁 Duyệt</button>`:''}
         ${canHuyDuyet?`<button class="btn btn-xs" style="background:#fef8e7;color:#8a5e00;border:1px solid #f0d080" onclick="huyDuyetHDV('${esc(r.id)}')">↩ Hủy duyệt</button>`:''}
-        ${canEdit?`<button class="btn btn-gray btn-xs" onclick="openEditHDV('${esc(r.id)}')">✏️</button>
-        <button class="btn btn-red btn-xs" onclick="delHDV('${esc(r.id)}')">🗑</button>`:''}
+        ${canSua?`<button class="btn btn-gray btn-xs" onclick="openEditHDV('${esc(r.id)}')">✏️</button>`:''}
+        ${canXoa?`<button class="btn btn-red btn-xs" onclick="delHDV('${esc(r.id)}')">🗑</button>`:''}
       </div></td>
     </tr>`;
   }).join(''):'<tr><td colspan="14"><div class="empty">📭 Chưa có dữ liệu</div></td></tr>';
